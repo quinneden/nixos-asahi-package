@@ -14,11 +14,10 @@ if true; then
     export LC_ALL=en_US.UTF-8
     export LANG=en_US.UTF-8
     export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
-
     export VERSION_FLAG=https://cdn.asahilinux.org/installer-dev/latest
     export INSTALLER_BASE=https://cdn.asahilinux.org/installer-dev
-    # export REPO_BASE=https://raw.githubusercontent.com/quinneden/nai/main
-    export INSTALLER_DATA=
+    export REPO_BASE=https://raw.githubusercontent.com/quinneden/nai/main
+    export INSTALLER_DATA=https://raw.githubusercontent.com/quinneden/nixos-asahi-package/installer/installer_data.json
 
     export EXPERT=1
 
