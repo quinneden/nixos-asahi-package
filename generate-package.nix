@@ -24,7 +24,7 @@
     rm -rf $out/esp/EFI/nixos/.extra-files
 
     ${pkgs.zip}/bin/zip -jr $out/package/"$filename".zip $out/esp $out/root.img
-    chmod 644 $out/"$filename".zip
+    chmod 644 $out/package/"$filename".zip
 
     rm -rf $out/{esp,root.img,boot.img}
   '';
@@ -34,10 +34,3 @@ in
     src = ./.;
     buildInputs = [generate-package];
   }
-# generate-package
-# pkgs.gawk
-# pkgs.gnugrep
-# pkgs.gptfdisk
-# pkgs.p7zip
-# pkgs.zip
-
