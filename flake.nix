@@ -1,0 +1,65 @@
+{
+  description = "Nix flake configuration for disk image to be used with asahi-linux installer.";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/master";
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nixos-apple-silicon = {
+      url = "github:tpwrules/nixos-apple-silicon";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    lix-module = {
+      url = "https://git.lix.systems/lix-project/nixos-module/archive/2.90.0.tar.gz";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = {
+    nixos-apple-silicon,
+    nixos-generators,
+    lix-module,
+    nixpkgs,
+    self,
+    ...
+  }: let
+    system = "aarch64-linux";
+    pkgsForSystem = system:
+      import nixpkgs {
+        inherit system;
+        overlays = [nixos-apple-silicon.overlays.default];
+      };
+    allSystems = ["aarch64-linux"];
+    forAllSystems = f:
+      nixpkgs.lib.genAttrs allSystems (system:
+        f {
+          inherit system;
+          pkgs = pkgsForSystem system;
+        });
+  in {
+    packages = forAllSystems ({
+      system,
+      pkgs,
+    }: {
+      default = self.packages.aarch64-linux.asahiImage;
+      asahiImage = nixos-generators.nixosGenerate {
+        system = system;
+        specialArgs = {
+          pkgs = pkgs;
+          diskSize = 5 * 1024;
+        };
+        modules = [
+          ({...}: {nix.registry.nixpkgs.flake = nixpkgs;})
+          nixos-apple-silicon.nixosModules.default
+          lix-module.nixosModules.default
+          # {nix.package = pkgs.lix;}
+          ./configuration.nix
+        ];
+        format = "raw-efi";
+      };
+      asahiPackage = pkgs.callPackage ./generate-package.nix {inherit self pkgs;};
+    });
+  };
+}
