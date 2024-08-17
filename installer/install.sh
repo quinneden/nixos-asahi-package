@@ -16,10 +16,8 @@ if true; then
     export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
     export VERSION_FLAG=https://cdn.asahilinux.org/installer/latest
     export INSTALLER_BASE=https://cdn.asahilinux.org/installer
-    # export REPO_BASE=https://raw.githubusercontent.com/quinneden/nai/main
-    export INSTALLER_DATA=https://raw.githubusercontent.com/quinneden/nixos-asahi-package/main/installer/installer_data.json
-
-    export EXPERT=1
+    export REPO_BASE=https://raw.githubusercontent.com/quinneden/nixos-asahi-package/main
+    export INSTALLER_DATA="$REPO_BASE"/installer/installer_data.json
 
     # TMP="$(mktemp -d)"
     TMP=/tmp/asahi-install
@@ -47,7 +45,6 @@ if true; then
 
     curl --no-progress-meter -L -o "$PKG" "$INSTALLER_BASE/$PKG"
     curl --no-progress-meter -L -O "$INSTALLER_DATA"
-    # ln -sf "$PWD/installer_data.json" installer_data.json
 
     echo "  Extracting..."
 
