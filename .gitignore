@@ -2,4 +2,4 @@
 package
 result
 image
-push-to-R3.sh
+push.sh

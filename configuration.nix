@@ -6,7 +6,10 @@
   lib,
   ...
 }: {
-  imports = [(modulesPath + "/installer/scan/not-detected.nix")];
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+    (modulesPath + "/profiles/clone-config.nix")
+  ];
 
   boot = {
     initrd = {
@@ -19,10 +22,10 @@
     loader.efi.canTouchEfiVariables = false;
   };
 
-  # installer.cloneConfig = true;
-  # installer.cloneConfigIncludes = [
-  #   "./clone-config/configuration.nix"
-  # ];
+  installer.cloneConfig = true;
+  installer.cloneConfigIncludes = [
+    "./copy-to-disk/configuration.nix"
+  ];
 
   boot.postBootCommands = let
     inherit (pkgs) asahi-fwextract;
@@ -59,7 +62,7 @@
   };
 
   fileSystems."/boot" = {
-    device = lib.mkForce "/dev/disk/by-uuid/12CE-A600"; # A63E-863C (from asahi-installer)
+    device = lib.mkForce "/dev/disk/by-uuid/12CE-A600";
     fsType = "vfat";
     options = ["fmask=0022" "dmask=0022"];
   };
@@ -67,12 +70,6 @@
   nix.settings = {
     warn-dirty = false;
     experimental-features = ["nix-command" "flakes"];
-    # substituters = [
-    #   "https://nixos-apple-silicon.cachix.org"
-    # ];
-    # trusted-public-keys = [
-    #   "nixos-apple-silicon.cachix.org-1:xkpmN/hWmtMvApu5lYaNPy4sUXc/6Qfd+iTjdLX8HZ0="
-    # ];
   };
 
   networking.wireless.iwd = {

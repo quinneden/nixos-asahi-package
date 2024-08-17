@@ -17,6 +17,11 @@
     };
   };
 
+  nixConfig = {
+    substituters = ["https://nixos-apple-silicon.cachix.org"];
+    trusted-public-keys = ["nixos-apple-silicon.cachix.org-1:xkpmN/hWmtMvApu5lYaNPy4sUXc/6Qfd+iTjdLX8HZ0="];
+  };
+
   outputs = {
     nixos-apple-silicon,
     nixos-generators,
@@ -42,8 +47,9 @@
     packages = forAllSystems ({
       system,
       pkgs,
+      ...
     }: {
-      default = self.packages.aarch64-linux.asahiImage;
+      default = self.packages.aarch64-linux.asahiPackage;
       asahiImage = nixos-generators.nixosGenerate {
         system = system;
         specialArgs = {
@@ -54,7 +60,6 @@
           ({...}: {nix.registry.nixpkgs.flake = nixpkgs;})
           nixos-apple-silicon.nixosModules.default
           lix-module.nixosModules.default
-          # {nix.package = pkgs.lix;}
           ./configuration.nix
         ];
         format = "raw-efi";

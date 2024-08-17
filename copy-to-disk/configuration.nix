@@ -3,8 +3,27 @@
   pkgs,
   ...
 }: {
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = false;
+  boot = {
+    initrd = {
+      availableKernelModules = ["xhci_pci" "usb_storage" "usbhid"];
+      kernelModules = [];
+    };
+    kernelModules = [];
+    extraModulePackages = [];
+    loader.systemd-boot.enable = true;
+    loader.efi.canTouchEfiVariables = false;
+  };
+
+  fileSystems."/" = {
+    device = "/dev/disk/by-uuid/f222513b-ded1-49fa-b591-20ce86a2fe7f";
+    fsType = "ext4";
+  };
+
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/12CE-A600";
+    fsType = "vfat";
+    options = ["fmask=0022" "dmask=0022"];
+  };
 
   networking.wireless.iwd = {
     enable = true;

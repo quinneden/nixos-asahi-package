@@ -21,12 +21,11 @@
     dd if=$out/nixos.img of=$out/boot.img bs=512 skip="$start_boot" count="$sectors_boot"
 
     ${pkgs.p7zip}/bin/7z x $out/boot.img -o$out/esp
-    rm -rf $out/esp/EFI/nixos/.extra-files
 
-    ${pkgs.zip}/bin/zip -jr $out/package/"$filename".zip $out/esp $out/root.img
+    cd $out; ${pkgs.zip}/bin/zip -r ./package/"$filename".zip esp root.img
     chmod 644 $out/package/"$filename".zip
 
-    rm -rf $out/{esp,root.img,boot.img}
+    rm -rf $out/{esp,root.img,boot.img,nixos.img}
   '';
 in
   stdenv.mkDerivation {
