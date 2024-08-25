@@ -2,8 +2,6 @@
 
 DATE=`date "+%d%m%y"`
 PKG="nixos-asahi-$DATE.zip"
-# OLD_URL=$(jq -r < installer/installer_data.json ".[].[].package")
-# URL=$(rclone link r2:nixos-asahi/$PKG)
 BASEURL="https://pub-4b458b0cfaa1441eb321ecefef7d540e.r2.dev"
 RESULT=$(readlink ./result)
 

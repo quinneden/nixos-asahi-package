@@ -22,6 +22,8 @@
 
     ${pkgs.p7zip}/bin/7z x $out/boot.img -o$out/esp
 
+    stat -f%z $out/root.img > $out/.ROOTSIZE
+
     cd $out; ${pkgs.zip}/bin/zip -r ./package/"$filename".zip esp root.img
     chmod 644 $out/package/"$filename".zip
 
