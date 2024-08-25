@@ -16,8 +16,7 @@ if true; then
     export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
     export VERSION_FLAG=https://cdn.asahilinux.org/installer/latest
     export INSTALLER_BASE=https://cdn.asahilinux.org/installer
-    export REPO_BASE=https://raw.githubusercontent.com/quinneden/nixos-asahi-package/main
-    export INSTALLER_DATA="$REPO_BASE"/installer/installer_data.json
+    export INSTALLER_DATA=https://qeden.systems/installer/installer_data.json
 
     # TMP="$(mktemp -d)"
     TMP=/tmp/asahi-install
