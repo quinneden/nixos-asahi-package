@@ -54,7 +54,7 @@
         system = system;
         specialArgs = {
           pkgs = pkgs;
-          diskSize = 5 * 1024;
+          # diskSize = 5 * 1024;
         };
         modules = [
           ({...}: {nix.registry.nixpkgs.flake = nixpkgs;})
