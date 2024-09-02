@@ -12,7 +12,7 @@ nix build .#packages.aarch64-linux.asahiImage
 
 Build disk image and generate asahi-installer package, output zipfile as result.
 ```bash
-nix build .#packages.aarch64-linux.asahiPackage
+nix run .#packages.aarch64-linux.asahiPackage
 ```
 
 ## Credit

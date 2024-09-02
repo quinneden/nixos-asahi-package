@@ -17,10 +17,10 @@
     };
   };
 
-  nixConfig = {
-    substituters = ["https://nixos-apple-silicon.cachix.org"];
-    trusted-public-keys = ["nixos-apple-silicon.cachix.org-1:xkpmN/hWmtMvApu5lYaNPy4sUXc/6Qfd+iTjdLX8HZ0="];
-  };
+  # nixConfig = {
+  #   substituters = ["https://nixos-apple-silicon.cachix.org"];
+  #   trusted-public-keys = ["nixos-apple-silicon.cachix.org-1:xkpmN/hWmtMvApu5lYaNPy4sUXc/6Qfd+iTjdLX8HZ0="];
+  # };
 
   outputs = {
     nixos-apple-silicon,
