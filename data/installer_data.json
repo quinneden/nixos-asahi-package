@@ -5,7 +5,7 @@
       "default_os_name": "NixOS",
       "boot_object": "m1n1.bin",
       "next_object": "m1n1/boot.bin",
-      "package": "https://pub-4b458b0cfaa1441eb321ecefef7d540e.r2.dev/nixos-asahi-020924.zip",
+      "package": "nixos-asahi-020924.zip",
       "supported_fw": [
         "12.3",
         "12.3.1",

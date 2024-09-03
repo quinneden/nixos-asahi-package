@@ -2,7 +2,7 @@
 
 DATE=$(date "+%d%m%y")
 PKG="nixos-asahi-$DATE.zip"
-BASEURL="https://pub-4b458b0cfaa1441eb321ecefef7d540e.r2.dev"
+BASEURL="https://cdn.qeden.systems"
 BASEDIR=$(dirname "$0")/..
 RESULT=$(realpath "$BASEDIR"/result)
 ROOTSIZE=$(cat $BASEDIR/result/.tag_rootimg_size)
@@ -26,11 +26,11 @@ upload() {
 }
 
 update_installer_data() {
-  jq -r < "$BASEDIR"/src/installer_data.json ".[].[].package = \"$BASEURL/$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\"" > "$BASEDIR"/data/installer_data.json
+  jq -r < "$BASEDIR"/src/installer_data.json ".[].[].package = \"$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\"" > "$BASEDIR"/data/installer_data.json
 }
 
 main() {
-  upload
+  # upload
   update_installer_data
 }
 
