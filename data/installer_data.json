@@ -5,7 +5,7 @@
       "default_os_name": "NixOS",
       "boot_object": "m1n1.bin",
       "next_object": "m1n1/boot.bin",
-      "package": "https://pub-4b458b0cfaa1441eb321ecefef7d540e.r2.dev/nixos-asahi-010924.zip",
+      "package": "https://cdn.qeden.systems/nixos-asahi-020924.zip",
       "supported_fw": [
         "12.3",
         "12.3.1",
@@ -25,7 +25,7 @@
         {
           "name": "Root",
           "type": "Linux",
-          "size": "5111808000B",
+          "size": "4885315584B",
           "expand": true,
           "image": "root.img"
         }
