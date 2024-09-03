@@ -22,6 +22,7 @@
     dd if=$out/nixos.img of=$out/boot.img bs=512 skip="$start_boot" count="$sectors_boot"
 
     ${pkgs.p7zip}/bin/7z x $out/boot.img -o$out/esp
+    rm -rf $out/esp/EFI/nixos/.extra-files
 
     ${pkgs.coreutils}/bin/stat -c "%s" $out/root.img > $out/.tag_rootimg_size
 

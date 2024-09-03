@@ -3,8 +3,16 @@
 DATE=$(date "+%d%m%y")
 PKG="nixos-asahi-$DATE.zip"
 BASEURL="https://pub-4b458b0cfaa1441eb321ecefef7d540e.r2.dev"
-RESULT=$(readlink ./result)
-ROOTSIZE=$(cat ./result/.tag_rootimg_size)
+BASEDIR=$(dirname "$0")/..
+RESULT=$(realpath "$BASEDIR"/result)
+ROOTSIZE=$(cat $BASEDIR/result/.tag_rootimg_size)
+
+if [[ -e $RESULT/nixos-asahi-$DATE.zip ]]; then
+  PKG="nixos-asahi-$DATE.zip"
+else
+  PKG=$(basename $(stat -f "%a %N" result/package/nixos-asahi-* | sort -nr | head -n 1 | awk -F' ' '{print $2}'))
+fi
+
 
 upload() {
   if [[ -e $RESULT/package/$PKG ]]; then
@@ -12,18 +20,17 @@ upload() {
     chmod 644 /tmp/"$PKG"
   fi
 
-  rclone copy -P /tmp/"$PKG" r2:nixos-asahi
+  rclone copy --progress /tmp/"$PKG" r2:nixos-asahi
 
   rm -rf /tmp/"$PKG"
 }
 
 update_installer_data() {
-  BASE=$(dirname "$0")/..
-  jq -r < "$BASE"/src/installer_data.json ".[].[].package = \"$BASEURL/$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\"" > "$BASE"/data/installer_data.json
+  jq -r < "$BASEDIR"/src/installer_data.json ".[].[].package = \"$BASEURL/$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\"" > "$BASEDIR"/data/installer_data.json
 }
 
 main() {
-  # upload
+  upload
   update_installer_data
 }
 
