@@ -6,6 +6,7 @@
   ...
 }: let
   generate-package = pkgs.writeShellScript "generate-package" ''
+    TZ="America/Los_Angeles"
     DATE=`date "+%d%m%y"`
     filename="nixos-asahi-$DATE"
 
@@ -27,7 +28,8 @@
     cd $out; ${pkgs.zip}/bin/zip -r ./package/"$filename".zip esp root.img
     chmod 644 $out/package/"$filename".zip
 
-    # rm -rf $out/{esp,root.img,boot.img,nixos.img}
+    rm -rf $out/{esp,root.img,boot.img,nixos.img}
+      echo "$DATE" > $out/DATE
   '';
 in
   stdenv.mkDerivation {
