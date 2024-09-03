@@ -14,19 +14,28 @@ if true; then
     export LC_ALL=en_US.UTF-8
     export LANG=en_US.UTF-8
     export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
+    if ! curl --no-progress-meter file:/// &>/dev/null; then
+        echo "Your version of cURL is too old. This usually means your macOS is very out"
+        echo "of date. Installing Asahi Linux requires at least macOS version 13.5."
+        exit 1
+    fi
+
     export VERSION_FLAG=https://cdn.asahilinux.org/installer/latest
     export INSTALLER_BASE=https://cdn.asahilinux.org/installer
     export INSTALLER_DATA=https://github.com/quinneden/nixos-asahi-package/raw/main/data/installer_data.json
+    export REPO_BASE=https://cdn.qeden.systems
 
-    # TMP="$(mktemp -d)"
+    export EXPERT=1
+
+    #TMP="$(mktemp -d)"
     TMP=/tmp/asahi-install
-
-    cd "$(dirname "$0")"
 
     echo
     echo "Bootstrapping installer:"
 
     if [ -e "$TMP" ]; then
+        # mv "$TMP" "$TMP-$(date +%Y%m%d-%H%M%S)"
         sudo rm -rf "$TMP"
     fi
 

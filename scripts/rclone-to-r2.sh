@@ -3,8 +3,7 @@
 DATE=$(date "+%d%m%y")
 PKG="nixos-asahi-$DATE.zip"
 BASEURL="https://pub-4b458b0cfaa1441eb321ecefef7d540e.r2.dev"
-# RESULT=$(readlink ./result)
-RESULT="./result"
+RESULT=$(readlink ./result)
 ROOTSIZE=$(cat ./result/.tag_rootimg_size)
 
 upload() {
