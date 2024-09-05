@@ -5,6 +5,8 @@
   lib,
   ...
 }: let
+  date = builtins.readFile (pkgs.runCommand "timestamp" {} "echo -n `date -u +%Y-%m-%d` > $out");
+
   generate-package = pkgs.writeShellScript "generate-package" ''
     DATE=$(date -u "+%d%m%y")
     filename="nixos-asahi-$DATE"
@@ -34,7 +36,8 @@
   '';
 in
   stdenv.mkDerivation {
-    name = "generate-package";
+    name = "nixos-asahi-installer-package";
+    pname = "nixos-asahi-installer-package-${date}";
     src = ./.;
     buildInputs = [generate-package];
   }
