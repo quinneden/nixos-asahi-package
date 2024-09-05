@@ -26,8 +26,6 @@ if true; then
     export INSTALLER_DATA=https://github.com/quinneden/nixos-asahi-package/raw/main/data/installer_data.json
     export REPO_BASE=https://cdn.qeden.systems
 
-    export EXPERT=1
-
     #TMP="$(mktemp -d)"
     TMP=/tmp/asahi-install
 
@@ -35,7 +33,6 @@ if true; then
     echo "Bootstrapping installer:"
 
     if [ -e "$TMP" ]; then
-        # mv "$TMP" "$TMP-$(date +%Y%m%d-%H%M%S)"
         sudo rm -rf "$TMP"
     fi
 
@@ -52,7 +49,10 @@ if true; then
     echo "  Downloading..."
 
     curl --no-progress-meter -L -o "$PKG" "$INSTALLER_BASE/$PKG"
-    curl --no-progress-meter -L -O "$INSTALLER_DATA"
+    if ! curl --no-progress-meter -L -O "$INSTALLER_DATA"; then
+        echo "    Error downloading installer_data.json. GitHub might be blocked in your network."
+        echo "    Please consider using a VPN if you experience issues."
+    fi
 
     echo "  Extracting..."
 
