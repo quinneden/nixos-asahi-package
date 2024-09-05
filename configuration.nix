@@ -24,7 +24,7 @@
 
   installer.cloneConfig = true;
   installer.cloneConfigIncludes = [
-    "./copy-to-disk/configuration.nix"
+    ./copy-to-disk/configuration.nix
   ];
 
   boot.postBootCommands = let
@@ -43,6 +43,8 @@
     mv vendorfw/* /lib/firmware
     popd
     rm -rf /tmp/.fwsetup
+
+    nixos-generate-config && rm /etc/nixos/configuration.nix
 
     if [ ! -f /etc/nixos/configuration.nix ]; then
       mkdir -p /etc/nixos

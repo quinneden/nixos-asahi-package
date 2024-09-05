@@ -17,10 +17,16 @@
     };
   };
 
-  # nixConfig = {
-  #   substituters = ["https://nixos-apple-silicon.cachix.org"];
-  #   trusted-public-keys = ["nixos-apple-silicon.cachix.org-1:xkpmN/hWmtMvApu5lYaNPy4sUXc/6Qfd+iTjdLX8HZ0="];
-  # };
+  nixConfig = {
+    substituters = [
+      "https://nixos-asahi.cachix.org"
+      "https://nixos-apple-silicon.cachix.org"
+    ];
+    trusted-public-keys = [
+      "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
+      "nixos-apple-silicon.cachix.org-1:xkpmN/hWmtMvApu5lYaNPy4sUXc/6Qfd+iTjdLX8HZ0="
+    ];
+  };
 
   outputs = {
     nixos-apple-silicon,

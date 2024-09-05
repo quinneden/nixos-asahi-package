@@ -30,7 +30,7 @@
     chmod 644 $out/package/"$filename".zip
 
     rm -rf $out/{esp,root.img,boot.img,nixos.img}
-      echo "$DATE" > $out/DATE
+    echo "$DATE" > $out/DATE
   '';
 in
   stdenv.mkDerivation {

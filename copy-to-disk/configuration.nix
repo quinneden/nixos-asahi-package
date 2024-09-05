@@ -2,7 +2,19 @@
   config,
   pkgs,
   ...
-}: {
+}: let
+  nixos-apple-silicon = pkgs.fetchFromGithub {
+    owner = "tpwrules";
+    repo = "nixos-apple-silicon";
+    rev = "main";
+    sha256 = "sha256-2zPzPP9Eu5NxgJxTVcuCCX5xh7CWy7rYaLHfaAZS6H8=";
+  };
+in {
+  imports = [
+    ./hardware-configuration.nix
+    nixos-apple-silicon.nixosModules.default
+  ];
+
   boot = {
     initrd = {
       availableKernelModules = ["xhci_pci" "usb_storage" "usbhid"];
@@ -30,14 +42,7 @@
     settings.General.EnableNetworkConfiguration = true;
   };
 
-  nixpkgs.overlays = let
-    nixos-apple-silicon = pkgs.fetchFromGithub {
-      owner = "tpwrules";
-      repo = "nixos-apple-silicon";
-      rev = "main";
-      sha256 = "";
-    };
-  in [nixos-apple-silicon.overlays.default];
+  nixpkgs.overlays = [nixos-apple-silicon.overlays.default];
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
