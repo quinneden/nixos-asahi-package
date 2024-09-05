@@ -6,9 +6,10 @@
   ...
 }: let
   generate-package = pkgs.writeShellScript "generate-package" ''
-    TZ="America/Los_Angeles"
-    DATE=`date "+%d%m%y"`
+    DATE=$(date -u "+%d%m%y")
     filename="nixos-asahi-$DATE"
+
+    mkdir $out
 
     start_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 ${self.packages.aarch64-linux.asahiImage}/nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
     sectors_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 ${self.packages.aarch64-linux.asahiImage}/nixos.img | grep '^Partition size.*' | awk -F' ' '{print $3}'`
@@ -30,7 +31,6 @@
     chmod 644 $out/package/"$filename".zip
 
     rm -rf $out/{esp,root.img,boot.img,nixos.img}
-    echo "$DATE" > $out/DATE
   '';
 in
   stdenv.mkDerivation {
