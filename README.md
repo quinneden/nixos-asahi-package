@@ -10,9 +10,9 @@ Build raw-efi NixOS disk image.
 nix build .#packages.aarch64-linux.asahiImage
 ```
 
-Build disk image and generate asahi-installer package, output zipfile as result.
+Build disk image and package for asahi-installer.
 ```bash
-nix run .#packages.aarch64-linux.asahiPackage
+nix build .#packages.aarch64-linux.asahiPackage
 ```
 
 ## Credit
