@@ -28,7 +28,7 @@ upload() {
 }
 
 update_installer_data() {
-  jq -r < "$BASEDIR"/src/installer_data.json ".[].[].package = \"$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\"" > "$BASEDIR"/data/installer_data.json
+  jq -r < "$BASEDIR"/src/installer_data.json ".[].[].package = \"$BASEURL/$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\"" > "$BASEDIR"/data/installer_data.json
 }
 
 main() {

@@ -5,7 +5,7 @@
       "default_os_name": "NixOS",
       "boot_object": "m1n1.bin",
       "next_object": "m1n1/boot.bin",
-      "package": "nixos-asahi-050924.zip",
+      "package": "https://cdn.qeden.systems/nixos-asahi-050924.zip",
       "supported_fw": [
         "12.3",
         "12.3.1",
