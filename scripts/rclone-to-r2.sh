@@ -2,19 +2,19 @@
 
 set -e
 
-DATE=$(date -u "+%d%m%y")
-PKG="nixos-asahi-$DATE.zip"
+BASEDIR="$(dirname "$0")/.."
 BASEURL="https://cdn.qeden.systems"
-BASEDIR=$(dirname "$0")/..
-RESULT=$(realpath "$BASEDIR"/result)
-ROOTSIZE=$(cat $BASEDIR/result/.tag_rootimg_size)
+DATE=$(date -u "+%Y%d%m")
+PKG="nixos-asahi-${DATE}.zip"
+RESULT=$(realpath "${BASEDIR}"/result)
+ROOTSIZE=$(cat ${BASEDIR}/result/.tag_rootsize)
+VERSION_TAG=$(cat "${BASEDIR}"/version.tag)
 
-if [[ -e $RESULT/nixos-asahi-$DATE.zip ]]; then
-  PKG="nixos-asahi-$DATE.zip"
+if [[ -e $RESULT/nixos-asahi-${DATE}.zip ]]; then
+  PKG="nixos-asahi-${DATE}.zip"
 else
   PKG=$(basename $(stat -f "%a %N" "$RESULT"/package/nixos-asahi-*.zip | sort -nr | head -n 1 | awk -F' ' '{print $2}'))
 fi
-
 
 upload() {
   if [[ -e $RESULT/package/$PKG ]]; then
@@ -28,17 +28,20 @@ upload() {
 }
 
 update_installer_data() {
-  jq -r < "$BASEDIR"/src/installer_data.json ".[].[].package = \"$BASEURL/$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\"" > "$BASEDIR"/data/installer_data.json
+  jq -r < "${BASEDIR}"/src/installer_data.json ".[].[].package = \"${BASEURL}/$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\"" > "${BASEDIR}"/data/installer_data.json
 }
 
-main() {
-  upload
-  update_installer_data
-  git add "$BASEDIR"/data/installer_data.json &>/dev/null || true
-  git commit -m "Update data/installer_data.json" &>/dev/null || true
-  printf "\nPush to git?"
-  read
-  git push
+increment_version() {
+  read -r VERSION < <(awk -vFS=. -vOFS=. '{$NF++;print}' <<<"${VERSION_TAG}")
+  cat <<<"${VERSION}" > "${BASEDIR}"/version.tag
 }
 
-main && exit
+upload
+printf "\nUpdate package version and push to git?"
+read
+increment_version
+update_installer_data
+git add "${BASEDIR}"/data/installer_data.json "${BASEDIR}"/version.tag
+git commit -m "update package: ${VERSION}"
+git tag "${VERSION}"
+git push

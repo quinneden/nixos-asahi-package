@@ -2,7 +2,7 @@
   description = "Nix flake configuration for disk image to be used with asahi-linux installer.";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/master";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -12,7 +12,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     lix-module = {
-      url = "https://git.lix.systems/lix-project/nixos-module/archive/2.90.0.tar.gz";
+      url = "https://git.lix.systems/lix-project/nixos-module/archive/2.91.0.tar.gz";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -20,11 +20,9 @@
   nixConfig = {
     substituters = [
       "https://nixos-asahi.cachix.org"
-      "https://nixos-apple-silicon.cachix.org"
     ];
     trusted-public-keys = [
       "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
-      "nixos-apple-silicon.cachix.org-1:xkpmN/hWmtMvApu5lYaNPy4sUXc/6Qfd+iTjdLX8HZ0="
     ];
   };
 
@@ -35,7 +33,7 @@
     nixpkgs,
     self,
     ...
-  }: let
+  } @ inputs: let
     system = "aarch64-linux";
     pkgsForSystem = system:
       import nixpkgs {
@@ -60,7 +58,6 @@
         system = system;
         specialArgs = {
           pkgs = pkgs;
-          # diskSize = 5 * 1024;
         };
         modules = [
           ({...}: {nix.registry.nixpkgs.flake = nixpkgs;})
@@ -72,5 +69,31 @@
       };
       asahiPackage = pkgs.callPackage ./generate-package.nix {inherit self pkgs;};
     });
+
+    nixosConfigurations = {
+      nixos = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        pkgs = import nixpkgs {
+          config.allowUnfree = true;
+          overlays = [nixos-apple-silicon.overlays.default];
+        };
+        specialArgs = {
+          inherit self inputs;
+          username = "FIXME"; # Replace with your username.
+        };
+        modules = [
+          nixos-apple-silicon.nixosModules.default
+          lix-module.nixosModules.default
+          ./configuration.nix
+          {
+            boot.postBootCommands = ''
+              if [[ ! -e /etc/nixos ]]; then
+                cp -r ${./nixos} /etc/
+              fi
+            '';
+          }
+        ];
+      };
+    };
   };
 }
