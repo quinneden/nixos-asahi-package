@@ -13,7 +13,7 @@
     filename="nixos-asahi-$DATE"
 
     mkdir -p $out/package
-    cp ${self.packages.aarch64-linux.asahiImage}/nixos.img $out
+    cp ${self.packages.aarch64-darwin.asahiImage}/nixos.img $out
 
     start_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 $out/nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
     sectors_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 $out/nixos.img | grep '^Partition size.*' | awk -F' ' '{print $3}'`

@@ -36,12 +36,17 @@ increment_version() {
   cat <<<"${VERSION}" > "${BASEDIR}"/.version_tag
 }
 
-upload
-printf "\nUpdate package version and push to git?"
-read
-increment_version
-update_installer_data
-git add "${BASEDIR}"/data/installer_data.json "${BASEDIR}"/.version_tag
-git commit -m "update package: ${VERSION}"
-git tag "${VERSION}"
-git push
+main() {
+  upload
+  printf "\nUpdate package version and push to git? (press enter x2)"
+  read -r
+  read -r
+  increment_version
+  update_installer_data
+  git add "${BASEDIR}"/data/installer_data.json "${BASEDIR}"/.version_tag
+  git commit -m "update package: ${VERSION}"
+  git tag "${VERSION}"
+  git push
+}
+
+main && exit
