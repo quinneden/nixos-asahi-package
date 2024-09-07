@@ -8,7 +8,6 @@
 }: {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
-    (modulesPath + "/profiles/clone-config.nix")
   ];
 
   boot = {
@@ -21,11 +20,6 @@
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = false;
   };
-
-  installer.cloneConfig = true;
-  installer.cloneConfigIncludes = [
-    ./copy-to-disk/configuration.nix
-  ];
 
   boot.postBootCommands = let
     inherit (pkgs) asahi-fwextract;
@@ -43,13 +37,6 @@
     mv vendorfw/* /lib/firmware
     popd
     rm -rf /tmp/.fwsetup
-
-    nixos-generate-config && rm /etc/nixos/configuration.nix
-
-    if [ ! -f /etc/nixos/configuration.nix ]; then
-      mkdir -p /etc/nixos
-      cp ${./copy-to-disk/configuration.nix} /etc/nixos/configuration.nix
-    fi
   '';
 
   hardware.asahi.extractPeripheralFirmware = false;
