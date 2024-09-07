@@ -2,3 +2,5 @@
 package
 result
 image
+*.img
+*.zip
