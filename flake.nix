@@ -17,14 +17,14 @@
     };
   };
 
-  nixConfig = {
-    substituters = [
-      "https://nixos-asahi.cachix.org"
-    ];
-    trusted-public-keys = [
-      "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
-    ];
-  };
+  # nixConfig = {
+  #   substituters = [
+  #     "https://nixos-asahi.cachix.org"
+  #   ];
+  #   trusted-public-keys = [
+  #     "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
+  #   ];
+  # };
 
   outputs = {
     nixos-apple-silicon,
@@ -40,7 +40,7 @@
         inherit system;
         overlays = [nixos-apple-silicon.overlays.default];
       };
-    allSystems = ["aarch64-linux"];
+    allSystems = ["aarch64-linux" "aarch64-darwin"];
     forAllSystems = f:
       nixpkgs.lib.genAttrs allSystems (system:
         f {
@@ -53,21 +53,19 @@
       pkgs,
       ...
     }: {
-      default = self.packages.aarch64-linux.asahiPackage;
+      default = self.packages.${system}.asahiPackage;
       asahiImage = nixos-generators.nixosGenerate {
-        system = system;
-        specialArgs = {
-          pkgs = pkgs;
-        };
+        system = "aarch64-linux";
+        pkgs = import nixpkgs {inherit system;};
+        specialArgs = {inherit inputs;};
         modules = [
-          ({...}: {nix.registry.nixpkgs.flake = nixpkgs;})
           nixos-apple-silicon.nixosModules.default
           lix-module.nixosModules.default
           ./configuration.nix
         ];
         format = "raw-efi";
       };
-      asahiPackage = pkgs.callPackage ./generate-package.nix {inherit self pkgs;};
+      asahiPackage = pkgs.callPackage ./generate-package.nix {inherit self pkgs system;};
     });
 
     nixosConfigurations = {

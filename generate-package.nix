@@ -12,15 +12,13 @@
     DATE=$(date -u "+%Y%d%m")
     filename="nixos-asahi-$DATE"
 
-    mkdir $out
-
-    start_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 ${self.packages.aarch64-linux.asahiImage}/nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
-    sectors_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 ${self.packages.aarch64-linux.asahiImage}/nixos.img | grep '^Partition size.*' | awk -F' ' '{print $3}'`
-    start_boot=`${pkgs.gptfdisk}/bin/sgdisk --info=1 ${self.packages.aarch64-linux.asahiImage}/nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
-    sectors_boot=`${pkgs.gptfdisk}/bin/sgdisk --info=1 ${self.packages.aarch64-linux.asahiImage}/nixos.img | grep '^Partition size.*' | awk -F' ' '{print $3}'`
-
     mkdir -p $out/package
     cp ${self.packages.aarch64-linux.asahiImage}/nixos.img $out
+
+    start_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 $out/nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
+    sectors_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 $out/nixos.img | grep '^Partition size.*' | awk -F' ' '{print $3}'`
+    start_boot=`${pkgs.gptfdisk}/bin/sgdisk --info=1 $out/nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
+    sectors_boot=`${pkgs.gptfdisk}/bin/sgdisk --info=1 $out/nixos.img | grep '^Partition size.*' | awk -F' ' '{print $3}'`
 
     dd if=$out/nixos.img of=$out/root.img bs=512 skip="$start_root" count="$sectors_root"
     dd if=$out/nixos.img of=$out/boot.img bs=512 skip="$start_boot" count="$sectors_boot"
@@ -38,7 +36,7 @@
 in
   stdenv.mkDerivation {
     name = "nixos-asahi-package";
-    version = "${version-tag}";
+    version = version-tag;
     pname = "nixos-asahi-package-${version-tag}";
     src = ./.;
     buildInputs = [generate-package];
