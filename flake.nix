@@ -34,16 +34,23 @@
     self,
     ...
   } @ inputs: let
-    system = "aarch64-linux";
-    pkgs = import nixpkgs {
-      inherit system;
-      overlays = [nixos-apple-silicon.overlays.default];
-    };
+    forAllSystems = function:
+      nixpkgs.lib.genAttrs [
+        "aarch64-linux"
+        "aarch64-darwin"
+      ] (system:
+        function (import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+          overlays = [
+            nixos-apple-silicon.overlays.default
+          ];
+        }));
   in {
-    packages.aarch64-darwin = {
-      default = self.packages.aarch64-darwin.asahiPackage;
+    packages = forAllSystems (system: {
+      default = self.packages."${system}".asahiPackage;
       asahiImage = nixos-generators.nixosGenerate {
-        inherit pkgs system;
+        system = "aarch64-linux";
         specialArgs = {inherit inputs;};
         modules = [
           nixos-apple-silicon.nixosModules.default
@@ -52,8 +59,8 @@
         ];
         format = "raw-efi";
       };
-      asahiPackage = pkgs.callPackage ./generate-package.nix {inherit self pkgs system;};
-    };
+      asahiPackage = nixpkgs.callPackage ./generate-package.nix {inherit self system;};
+    });
 
     nixosConfigurations = {
       nixos = nixpkgs.lib.nixosSystem {
