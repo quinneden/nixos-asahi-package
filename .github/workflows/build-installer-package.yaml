@@ -16,6 +16,7 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           extra_nix_config: |
+            accept-flake-config = true
             system = aarch64-linux
             experimental-features = nix-command flakes
             keep-outputs = true
