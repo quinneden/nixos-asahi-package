@@ -17,14 +17,14 @@
     };
   };
 
-  # nixConfig = {
-  #   substituters = [
-  #     "https://nixos-asahi.cachix.org"
-  #   ];
-  #   trusted-public-keys = [
-  #     "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
-  #   ];
-  # };
+  nixConfig = {
+    substituters = [
+      "https://nixos-asahi.cachix.org"
+    ];
+    trusted-public-keys = [
+      "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
+    ];
+  };
 
   outputs = {
     nixos-apple-silicon,
@@ -43,8 +43,7 @@
     packages.aarch64-darwin = {
       default = self.packages.aarch64-darwin.asahiPackage;
       asahiImage = nixos-generators.nixosGenerate {
-        system = "aarch64-linux";
-        pkgs = import nixpkgs {inherit system;};
+        inherit pkgs system;
         specialArgs = {inherit inputs;};
         modules = [
           nixos-apple-silicon.nixosModules.default
