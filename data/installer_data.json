@@ -1,0 +1,35 @@
+{
+  "os_list": [
+    {
+      "name": "NixOS",
+      "default_os_name": "NixOS",
+      "boot_object": "m1n1.bin",
+      "next_object": "m1n1/boot.bin",
+      "package": "https://cdn.qeden.systems/nixos-asahi-20241009.zip",
+      "supported_fw": [
+        "12.3",
+        "12.3.1",
+        "13.5"
+      ],
+      "partitions": [
+        {
+          "name": "EFI",
+          "type": "EFI",
+          "size": "500MB",
+          "format": "fat",
+          "volume_id": "0x12cea600",
+          "copy_firmware": true,
+          "copy_installer_data": true,
+          "source": "esp"
+        },
+        {
+          "name": "Root",
+          "type": "Linux",
+          "size": "4917821440B",
+          "expand": true,
+          "image": "root.img"
+        }
+      ]
+    }
+  ]
+}
