@@ -42,24 +42,32 @@
         function (import nixpkgs {
           inherit system;
           config.allowUnfree = true;
-          overlays = [
-            nixos-apple-silicon.overlays.default
-          ];
+          overlays = [nixos-apple-silicon.overlays.default];
         }));
   in {
-    packages = forAllSystems (system: {
-      default = self.packages."${system}".asahiPackage;
+    packages = forAllSystems ({
+      system,
+      pkgs,
+      ...
+    }: {
+      default = self.packages.${self.system}.asahiPackage;
       asahiImage = nixos-generators.nixosGenerate {
         system = "aarch64-linux";
+        pkgs = import nixpkgs {
+          system = "aarch64-linux";
+          config.allowUnfree = true;
+          overlays = [nixos-apple-silicon.overlays.default];
+        };
         specialArgs = {inherit inputs;};
         modules = [
+          ({...}: {nix.registry.nixpkgs.flake = nixpkgs;})
           nixos-apple-silicon.nixosModules.default
           lix-module.nixosModules.default
           ./configuration.nix
         ];
         format = "raw-efi";
       };
-      asahiPackage = nixpkgs.callPackage ./generate-package.nix {inherit self system;};
+      asahiPackage = pkgs.callPackage ./generate-package.nix {inherit self pkgs;};
     });
 
     nixosConfigurations = {
