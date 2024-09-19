@@ -5,9 +5,7 @@
   lib,
   ...
 }: let
-  # date = builtins.readFile (pkgs.runCommand "timestamp" {} "echo -n `date -u +%Y-%m-%d` > $out");
   version-tag = builtins.readFile ./.version_tag;
-
   generate-package = pkgs.writeShellScript "generate-package" ''
     DATE=$(date -u "+%Y%d%m")
     filename="nixos-asahi-$DATE"

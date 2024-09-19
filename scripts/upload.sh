@@ -45,8 +45,8 @@ update_installer_data() {
 }
 
 increment_version() {
-  read -r VERSION < <(awk -vFS=. -vOFS=. '{$NF++;print}' <<<"${VERSION_TAG}")
-  cat <<<"${VERSION}" > "${BASEDIR}"/.version_tag
+  VERSION=$(awk -vFS=. -vOFS=. '{$NF++;print}' <<<"${VERSION_TAG}")
+  printf "${VERSION}" > "${BASEDIR}"/.version_tag
 }
 
 main() {

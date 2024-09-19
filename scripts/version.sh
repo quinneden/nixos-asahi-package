@@ -1,11 +1,23 @@
 #!/usr/bin/env bash
 
-BASEDIR="$(dirname "$0")/.."
+cd "$(dirname "$0")/.."
+
+BASEDIR="$PWD"
 VERSION_TAG="$(cat "${BASEDIR}"/.version_tag)"
 
-increment_version() {
-  read -r VERSION < <(awk -vFS=. -vOFS=. '{$NF++;print}' <<<"${VERSION_TAG}")
-  cat <<<"${VERSION}" > "${BASEDIR}"/.version_tag
+confirm() {
+  while true; do
+    read -r -n 1 -p "${1:-Continue?} [y/n]: " REPLY
+    case $REPLY in
+      [yY]) echo ; return 0 ;;
+      [nN]) echo ; return 1 ;;
+      *) printf " \033[31m %s \n\033[0m" "invalid input"
+    esac
+  done
 }
 
-increment_version > "${BASEDIR}/.version_tag"; exit
+read -r VERSION < <(awk -vFS=. -vOFS=. '{$NF++;print}' <<<"${VERSION_TAG}")
+echo $VERSION
+
+confirm || exit 1
+printf "$VERSION"> "${BASEDIR}/.version_tag" && exit 0
