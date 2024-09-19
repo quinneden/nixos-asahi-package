@@ -12,9 +12,15 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
+        with:
+          github-token: ${{ github.token }}
+          extra-conf: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
       - name: Update flake.lock
         uses: DeterminateSystems/update-flake-lock@main
         with:
+          token: ${{ secrets.GH_TOKEN }}
           pr-title: "Update flake.lock"
           pr-labels: |
             dependencies
