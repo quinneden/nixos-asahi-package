@@ -1,12 +1,22 @@
 #!/usr/bin/env bash
 
-BASEDIR="$(dirname "$0")/.."
+set -e
+
+cd "$(dirname "$0")/.."
+
+BASEDIR="$PWD"
 BASEURL="https://cdn.qeden.systems"
 DATE=$(date -u "+%Y%d%m")
 PKG="nixos-asahi-${DATE}.zip"
 RESULT=$(realpath "${BASEDIR}"/result)
 ROOTSIZE=$(cat "${RESULT}"/.tag_rootsize)
 VERSION_TAG=$(cat "${BASEDIR}"/.version_tag)
+
+if [[ -f $RESULT/package/$PKG ]]; then
+  PKG="nixos-asahi-${DATE}.zip"
+elif [[ -e $RESULT ]]; then
+  PKG=$(basename $(stat -c "%a %N" "$RESULT"/package/nixos-asahi-*.zip | sort -nr | head -n 1 | awk -F' ' '{print $2}') | tr -d \')
+fi
 
 confirm() {
   while true; do
@@ -19,15 +29,10 @@ confirm() {
   done
 }
 
-if [[ -e $RESULT/nixos-asahi-${DATE}.zip ]]; then
-  PKG="nixos-asahi-${DATE}.zip"
-# else
-  # PKG=$(basename $(stat -c "%a %N" "$RESULT"/package/nixos-asahi-*.zip | sort -nr | head -n 1 | awk -F' ' '{print $2}'))
-fi
-
 upload() {
   if [[ -e $RESULT/package/$PKG ]]; then
-    cp -a "$RESULT"/package/"$PKG" /tmp/
+    mkdir -p /tmp/nixos-asahi-package
+    cp -a "$RESULT"/package/"$PKG" /tmp/nixos-asahi-package
     sudo chmod 644 /tmp/"$PKG"
   fi
   rclone copy --progress /tmp/"$PKG" r2:nixos-asahi || exit 1
