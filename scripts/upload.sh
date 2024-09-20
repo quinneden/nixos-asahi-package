@@ -35,13 +35,10 @@ upload() {
     cp -a "$RESULT"/package/"$PKG" /tmp/nixos-asahi-package
     sudo chmod 644 /tmp/"$PKG"
   fi
-  rclone copy --progress /tmp/"$PKG" r2:nixos-asahi || exit 1
-  [[ $? == 0 ]] && echo "Success! $PKG uploaded to bucket."
-  [[ -e /tmp/"$PKG" ]] && rm -rf /tmp/"$PKG"
-}
-
-update_installer_data() {
-  jq -r < "${BASEDIR}"/src/installer_data.json ".[].[].package = \"${BASEURL}/$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\"" > "${BASEDIR}"/data/installer_data.json
+  if (rclone copy --progress /tmp/"$PKG" r2:nixos-asahi || exit 1); then
+    echo "Success! $PKG uploaded to bucket."
+    [[ -e /tmp/"$PKG" ]] && rm -rf /tmp/"$PKG"
+  fi
 }
 
 increment_version() {
@@ -49,10 +46,13 @@ increment_version() {
   printf "${VERSION}" > "${BASEDIR}"/.version_tag
 }
 
+update_installer_data() {
+  jq -r < "${BASEDIR}"/data/template/installer_data.json ".[].[].package = \"${BASEURL}/$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package $VERSION_TAG\"" > "${BASEDIR}"/data/installer_data.json
+}
+
 main() {
   confirm "Begin upload?" || exit 0
-  upload
-  [[ $? == 0 ]] && confirm "Update package version and push to git?" || exit 0
+  if upload; then (confirm "Update package version and push to git?" || exit 0); fi
   increment_version
   update_installer_data
   git add "${BASEDIR}"/data/installer_data.json "${BASEDIR}"/.version_tag
@@ -61,4 +61,4 @@ main() {
   git push -u origin "${VERSION}"
 }
 
-main && exit
+main || exit 1
