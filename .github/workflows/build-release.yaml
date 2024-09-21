@@ -1,4 +1,4 @@
-name: CI
+name: Build release
 
 on:
   workflow_dispatch:
