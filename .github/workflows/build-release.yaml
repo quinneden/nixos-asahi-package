@@ -27,7 +27,8 @@ jobs:
           sudo mount -o remount,size=15G /run/qemu
           sudo mount -o remount,size=15G /run/user/1001
       - uses: DeterminateSystems/magic-nix-cache-action@main
-      - id: build-package
+      - name: nix build .#asahiPackage
+        id: build-package
         run: |
           if nix build -L .#packages.aarch64-linux.asahiPackage
           then
