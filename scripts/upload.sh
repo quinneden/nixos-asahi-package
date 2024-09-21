@@ -6,17 +6,10 @@ cd "$(dirname "$0")/.."
 
 BASEDIR="$PWD"
 BASEURL="https://cdn.qeden.systems"
-DATE=$(date -u "+%Y-%m-%d")
-PKG="nixos-asahi-${DATE}.zip"
+DATE_TAG=$(cat "${RESULT}"/.release_date)
+PKG="nixos-asahi-${DATE_TAG}.zip"
 RESULT=$(realpath "${BASEDIR}"/result)
-ROOTSIZE=$(cat "${RESULT}"/.tag_rootsize)
-VERSION_TAG=$(cat "${BASEDIR}"/.version_tag)
-
-if [[ -f $RESULT/package/$PKG ]]; then
-  PKG="nixos-asahi-${DATE}.zip"
-elif [[ -e $RESULT ]]; then
-  PKG=$(basename $(stat -c "%a %N" "$RESULT"/package/nixos-asahi-*.zip | sort -nr | head -n 1 | awk -F' ' '{print $2}') | tr -d \')
-fi
+ROOTSIZE=$(cat "${RESULT}"/.root_part_size)
 
 confirm() {
   while true; do
@@ -41,24 +34,18 @@ upload() {
   fi
 }
 
-increment_version() {
-  VERSION=$(awk -vFS=. -vOFS=. '{$NF++;print}' <<<"${VERSION_TAG}")
-  printf "${VERSION}" > "${BASEDIR}"/.version_tag
-}
-
 update_installer_data() {
-  jq -r < "${BASEDIR}"/data/template/installer_data.json ".[].[].package = \"${BASEURL}/$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package $VERSION_TAG\"" > "${BASEDIR}"/data/installer_data.json
+  jq -r < "${BASEDIR}"/data/template/installer_data.json ".[].[].package = \"${BASEURL}/$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package $DATE_TAG\"" > "${BASEDIR}"/data/installer_data.json
 }
 
 main() {
   confirm "Begin upload?" || exit 0
-  if upload; then (confirm "Update package version and push to git?" || exit 0); fi
-  increment_version
-  update_installer_data
-  git add "${BASEDIR}"/data/installer_data.json "${BASEDIR}"/.version_tag
-  git commit -m "update package: ${VERSION}"
-  git tag "${VERSION}"
-  git push -u origin "${VERSION}"
+  # if upload; then (confirm "Update package version and push to git?" || exit 0); fi
+  echo update_installer_data
+  echo git add "${BASEDIR}"/data/installer_data.json
+  echo git commit -m "release: NixOS Asahi-Installer Package ${DATE_TAG}"
+  echo git tag "release-${DATE_TAG}"
+  echo git push -u origin "release-${DATE_TAG}"
 }
 
 main || exit 1

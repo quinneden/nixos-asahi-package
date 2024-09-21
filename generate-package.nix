@@ -5,11 +5,9 @@
   lib,
   ...
 }: let
-  version-tag = builtins.readFile ./.version_tag;
   date = builtins.readFile (pkgs.runCommand "timestamp" {} "echo -n `date -u +%Y-%m-%d` > $out");
   generate-package = pkgs.writeShellScript "generate-package" ''
-    DATE=$(date -u "+%Y-%d-%m")
-    filename="nixos-asahi-$DATE"
+    filename="nixos-asahi-${date}"
 
     mkdir -p $out/package
     cp ${self.packages.aarch64-darwin.asahiImage}/nixos.img $out
@@ -25,17 +23,19 @@
     ${pkgs.p7zip}/bin/7z x $out/boot.img -o$out/esp
     rm -rf $out/esp/EFI/nixos/.extra-files
 
-    ${pkgs.coreutils}/bin/stat -c "%s" $out/root.img > $out/.tag_rootsize
+    ${pkgs.coreutils}/bin/stat -c "%s" $out/root.img > $out/.root_part_size
 
     cd $out; ${pkgs.zip}/bin/zip -r ./package/"$filename".zip esp root.img
 
     rm -rf $out/{esp,root.img,boot.img,nixos.img}
+
+    printf "${date}" > $out/.release_date
   '';
 in
   stdenv.mkDerivation {
-    name = "nixos-asahi-package";
-    version = version-tag;
-    pname = "nixos-asahi-package-${date}";
+    name = "nixos-asahi-installer-package";
+    version = date;
+    pname = "nixos-asahi-installer-package-${date}";
     src = ./.;
     buildInputs = [generate-package];
   }

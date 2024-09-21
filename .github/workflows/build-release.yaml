@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux:
+  build-package-and-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -32,12 +32,24 @@ jobs:
         run: |
           if nix build -L .#packages.aarch64-linux.asahiPackage
           then
-            echo "release_date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+            mkdir -p ./src
+            cp -r $(readlink ./result) ./src
+            chmod 644 ./src/**/*
+            echo "release_date=$(cat src/.release_date)" >> "$GITHUB_OUTPUT"
           fi
       - name: Release
         uses: softprops/action-gh-release@v2.0.8
         with:
           tag_name: release-${{ steps.build-package.outputs.release_date }}
           name: NixOS Asahi-Installer Package ${{ steps.build-package.outputs.release_date }}
-          files: ./result/package.nixos-asahi-${{ steps.build-package.outputs.release_date }}.zip
+          files: ./src/package/nixos-asahi-${{ steps.build-package.outputs.release_date }}.zip
           draft: true
+      - name: Upload to R2
+        uses: ryand56/r2-upload-action@latest
+        with:
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-bucket: ${{ secrets.R2_BUCKET }}
+          source-dir: src/package
+          destination-dir: ./
