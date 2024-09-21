@@ -21,7 +21,9 @@ jobs:
             experimental-features = nix-command flakes
             keep-outputs = true
             keep-derivations = true
-      - name: qemu
+            substituters = https://cache.lix.systems https://nixos-asahi.cachix.org
+            trusted-public-keys = cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o= nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk=
+      - name: Setup qemu
         run: |
           sudo apt install -y qemu-system-aarch64 qemu-efi binfmt-support qemu-user-static
           sudo mount -o remount,size=15G /run/qemu
