@@ -6,8 +6,9 @@
   ...
 }: let
   version-tag = builtins.readFile ./.version_tag;
+  date = builtins.readFile (pkgs.runCommand "timestamp" {} "echo -n `date -u +%Y-%m-%d` > $out");
   generate-package = pkgs.writeShellScript "generate-package" ''
-    DATE=$(date -u "+%Y%d%m")
+    DATE=$(date -u "+%Y-%d-%m")
     filename="nixos-asahi-$DATE"
 
     mkdir -p $out/package
@@ -27,7 +28,6 @@
     ${pkgs.coreutils}/bin/stat -c "%s" $out/root.img > $out/.tag_rootsize
 
     cd $out; ${pkgs.zip}/bin/zip -r ./package/"$filename".zip esp root.img
-    chmod 644 $out/package/"$filename".zip
 
     rm -rf $out/{esp,root.img,boot.img,nixos.img}
   '';
@@ -35,7 +35,7 @@ in
   stdenv.mkDerivation {
     name = "nixos-asahi-package";
     version = version-tag;
-    pname = "nixos-asahi-package-${version-tag}";
+    pname = "nixos-asahi-package-${date}";
     src = ./.;
     buildInputs = [generate-package];
   }

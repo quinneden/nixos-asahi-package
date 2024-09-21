@@ -2,7 +2,7 @@
 
 set -e
 
-DATE=$(date -u "+%d%m%y")
+DATE=$(date -u "+%Y-%m-%d")
 PKG="nixos-asahi-$DATE.zip"
 BASEURL="https://cdn.qeden.systems"
 BASEDIR=$(dirname "$0")/..

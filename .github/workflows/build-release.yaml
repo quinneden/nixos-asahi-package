@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@main
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          github-token: ${{ github.token }}
+          source-url: https://install.lix.systems/lix/lix-installer-x86_64-linux
+          extra-conf: |
+            system = aarch64-linux
+            experimental-features = nix-command flakes
+            keep-outputs = true
+            keep-derivations = true
+            run: |
+            sudo apt install -y qemu-system-aarch64 qemu-efi binfmt-support qemu-user-static
+            sudo mount -o remount,size=15G /run/qemu
+            sudo mount -o remount,size=15G /run/user/1001
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: nix build .#asahiPackage
+        id: build-package
+        run: |
+          if nix build -L .#packages.aarch64-linux.asahiPackage
+          then
+            echo "release_date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Release
+        uses: softprops/action-gh-release@v2.0.8
+        with:
+          tag_name: release-${{ steps.build-package.outputs.release_date }}
+          name: NixOS Asahi-Installer Package ${{ steps.build-package.outputs.release_date }}
+          files: ./result/package.nixos-asahi-${{ steps.build-package.outputs.release_date }}.zip
+          draft: true

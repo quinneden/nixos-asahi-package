@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 
 BASEDIR="$PWD"
 BASEURL="https://cdn.qeden.systems"
-DATE=$(date -u "+%Y%d%m")
+DATE=$(date -u "+%Y-%m-%d")
 PKG="nixos-asahi-${DATE}.zip"
 RESULT=$(realpath "${BASEDIR}"/result)
 ROOTSIZE=$(cat "${RESULT}"/.tag_rootsize)
