@@ -2,8 +2,7 @@
 
 cd "$(dirname "$0")/.."
 
-BASEDIR="$PWD"
-VERSION_TAG="$(cat "${BASEDIR}"/.version_tag)"
+VERSION_TAG="$(cat ./.version_tag)"
 
 confirm() {
   while true; do
@@ -20,4 +19,4 @@ read -r VERSION < <(awk -vFS=. -vOFS=. '{$NF++;print}' <<<"${VERSION_TAG}")
 echo $VERSION
 
 confirm || exit 1
-printf "$VERSION"> "${BASEDIR}/.version_tag" && exit 0
+printf "$VERSION"> ./.version_tag && exit 0

@@ -9,7 +9,7 @@
   generate-package = pkgs.writeShellScript "generate-package" ''
     filename="nixos-asahi-${date}"
 
-    mkdir -p $out/package
+    mkdir -p $out
     cp ${self.packages.aarch64-darwin.asahiImage}/nixos.img $out
 
     start_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 $out/nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
@@ -25,7 +25,7 @@
 
     ${pkgs.coreutils}/bin/stat -c "%s" $out/root.img > $out/.root_part_size
 
-    cd $out; ${pkgs.zip}/bin/zip -r ./package/"$filename".zip esp root.img
+    cd $out; ${pkgs.zip}/bin/zip -r "$filename".zip esp root.img
 
     rm -rf $out/{esp,root.img,boot.img,nixos.img}
 

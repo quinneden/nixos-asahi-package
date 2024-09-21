@@ -4,11 +4,10 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-BASEDIR="$PWD"
+RESULT=$(readlink ./result)
 BASEURL="https://cdn.qeden.systems"
 DATE_TAG=$(cat "${RESULT}"/.release_date)
 PKG="nixos-asahi-${DATE_TAG}.zip"
-RESULT=$(realpath "${BASEDIR}"/result)
 ROOTSIZE=$(cat "${RESULT}"/.root_part_size)
 
 confirm() {
@@ -23,29 +22,34 @@ confirm() {
 }
 
 upload() {
-  if [[ -e $RESULT/package/$PKG ]]; then
+  if [[ -e ${RESULT}/${PKG} ]]; then
     mkdir -p /tmp/nixos-asahi-package
-    cp -a "$RESULT"/package/"$PKG" /tmp/nixos-asahi-package
-    sudo chmod 644 /tmp/"$PKG"
+    cp -a "${RESULT}"/"${PKG}" /tmp/nixos-asahi-package
+    chmod 644 /tmp/nixos-asahi-package/"${PKG}"
   fi
-  if (rclone copy --progress /tmp/"$PKG" r2:nixos-asahi || exit 1); then
-    echo "Success! $PKG uploaded to bucket."
-    [[ -e /tmp/"$PKG" ]] && rm -rf /tmp/"$PKG"
+  if (rclone copy --progress /tmp/nixos-asahi-package/"${PKG}" r2:nixos-asahi || exit 1); then
+    echo "Success! ${PKG} uploaded to bucket."
+    [[ -e /tmp/nixos-asahi-package ]] && rm -rf /tmp/nixos-asahi-package
   fi
 }
 
 update_installer_data() {
-  jq -r < "${BASEDIR}"/data/template/installer_data.json ".[].[].package = \"${BASEURL}/$PKG\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package $DATE_TAG\"" > "${BASEDIR}"/data/installer_data.json
+  jq -r < ./data/template/installer_data.json ".[].[].package = \"${BASEURL}/${PKG}\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package ${DATE_TAG}\"" > ./data/installer_data.json || exit 1
 }
 
 main() {
   confirm "Begin upload?" || exit 0
-  # if upload; then (confirm "Update package version and push to git?" || exit 0); fi
-  echo update_installer_data
-  echo git add "${BASEDIR}"/data/installer_data.json
-  echo git commit -m "release: NixOS Asahi-Installer Package ${DATE_TAG}"
-  echo git tag "release-${DATE_TAG}"
-  echo git push -u origin "release-${DATE_TAG}"
+  if upload; then
+    confirm "Update package version and push to git?" || exit 0
+  else
+    exit 1
+  fi
+  update_installer_data
+  if git add ./data/installer_data.json; then
+    git commit -m "release: NixOS Asahi-Installer Package ${DATE_TAG}"
+    git tag "release-${DATE_TAG}"
+    git push -u origin "release-${DATE_TAG}"
+  fi
 }
 
 main || exit 1
