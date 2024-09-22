@@ -62,7 +62,7 @@
         modules = [
           ({...}: {nix.registry.nixpkgs.flake = nixpkgs;})
           nixos-apple-silicon.nixosModules.default
-          lix-module.nixosModules.default
+          lix-module.nixosModules.lixFromNixpkgs
           ./configuration.nix
         ];
         format = "raw-efi";

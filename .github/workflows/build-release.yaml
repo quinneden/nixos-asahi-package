@@ -26,17 +26,16 @@ jobs:
       - name: Setup qemu
         run: |
           sudo apt install -y qemu-system-aarch64 qemu-efi binfmt-support qemu-user-static
-          sudo mount -o remount,size=15G /run/qemu
-          sudo mount -o remount,size=15G /run/user/1001
+          sudo mount -o remount,size=30G /run
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: nix build .#asahiPackage
         id: build-package
         run: |
           if nix build -L .#packages.aarch64-linux.asahiPackage
           then
-            mkdir -p ./src
-            cp -r $(readlink ./result) ./src
-            chmod 644 ./src/**/*
+            mkdir src
+            cp $(readlink result)/{.root_part_size,.release_date,nixos-asahi-*.zip} src
+            chmod 644 src/*
             echo "release_date=$(cat src/.release_date)" >> "$GITHUB_OUTPUT"
           fi
       - name: Release
@@ -44,7 +43,7 @@ jobs:
         with:
           tag_name: release-${{ steps.build-package.outputs.release_date }}
           name: NixOS Asahi-Installer Package ${{ steps.build-package.outputs.release_date }}
-          files: ./src/package/nixos-asahi-${{ steps.build-package.outputs.release_date }}.zip
+          files: ./src/nixos-asahi-${{ steps.build-package.outputs.release_date }}.zip
           draft: true
       - name: Upload to R2
         uses: ryand56/r2-upload-action@latest
@@ -53,5 +52,5 @@ jobs:
           r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           r2-bucket: ${{ secrets.R2_BUCKET }}
-          source-dir: src/package
+          source-dir: src
           destination-dir: ./
