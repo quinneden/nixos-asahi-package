@@ -29,7 +29,9 @@ jobs:
       - name: nix build .#asahiPackage
         id: build-package
         run: |
-          if nix build -L .#packages.aarch64-linux.asahiPackage
+          sudo systemctl restart nix-daemon.service
+          sudo systemctl daemon-reload
+          if sudo nix build -L .#packages.aarch64-linux.asahiPackage
           then
             mkdir src
             cp $(readlink result)/{.root_part_size,.release_date,nixos-asahi-*.zip} src
