@@ -45,11 +45,11 @@ main() {
     exit 1
   fi
   update_installer_data
-  # if git add ./data/installer_data.json; then
-  #   git commit -m "release: NixOS Asahi-Installer Package ${DATE_TAG}"
-  #   git tag "release-${DATE_TAG}"
-  #   git push -u origin "release-${DATE_TAG}"
-  # fi
+  if git add ./data/installer_data.json; then
+    git commit -m "release: NixOS Asahi-Installer Package ${DATE_TAG}"
+    git tag "release-${DATE_TAG}"
+    git push -u origin "release-${DATE_TAG}"
+  fi
 }
 
 main || exit 1
