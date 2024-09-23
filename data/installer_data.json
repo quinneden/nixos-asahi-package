@@ -1,11 +1,11 @@
 {
   "os_list": [
     {
-      "name": "NixOS Asahi Package 2024-09-22",
+      "name": "NixOS Asahi Package 2024-09-23",
       "default_os_name": "NixOS",
       "boot_object": "m1n1.bin",
       "next_object": "m1n1/boot.bin",
-      "package": "https://cdn.qeden.systems/nixos-asahi-2024-09-22.zip",
+      "package": "https://cdn.qeden.systems/nixos-asahi-2024-09-23.zip",
       "supported_fw": [
         "12.3",
         "12.3.1",
@@ -25,7 +25,7 @@
         {
           "name": "Root",
           "type": "Linux",
-          "size": "4888461312B",
+          "size": "5778702336B",
           "expand": true,
           "image": "root.img"
         }
