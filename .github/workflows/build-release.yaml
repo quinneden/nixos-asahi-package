@@ -34,10 +34,9 @@ jobs:
           sudo systemctl daemon-reload
           if sudo nix build -L .#packages.aarch64-linux.asahiPackage
           then
-            mkdir -p ./src
-            cp $(readlink result)/{.root_part_size,.release_date,nixos-asahi-*.zip} ./src
-            chmod 644 src/*
-            echo "release_date=$(cat src/.release_date)" >> "$GITHUB_OUTPUT"
+            cp $(readlink result)/{.root_part_size,.release_date,nixos-asahi-*.zip} ./
+            chmod 644 ./{.root_part_size,.release_date,nixos-asahi-*.zip}
+            echo "release_date=$(cat ./.release_date)" >> "$GITHUB_OUTPUT"
           fi
       - name: Release
         uses: softprops/action-gh-release@v2.0.8
@@ -53,5 +52,5 @@ jobs:
           r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           r2-bucket: ${{ secrets.R2_BUCKET }}
-          source-dir: ./src/.
+          source-dir: ./.
           destination-dir: ./
