@@ -5,7 +5,7 @@
   lib,
   ...
 }: let
-  date = builtins.readFile (pkgs.runCommand "timestamp" {} "echo -n `date -u +%Y-%m-%d` > $out");
+  date = builtins.readFile (pkgs.runCommand "timestamp" {} "printf `date -u +%Y-%m-%d` > $out");
   generate-package = pkgs.writeShellScript "generate-package" ''
     filename="nixos-asahi-${date}"
 
@@ -23,11 +23,11 @@
     ${pkgs.p7zip}/bin/7z x $out/boot.img -o$out/esp
     rm -rf $out/esp/EFI/nixos/.extra-files
 
-    ${pkgs.coreutils}/bin/stat -c "%s" $out/root.img > $out/.root_part_size
+    ${pkgs.coreutils}/bin/stat --printf '%s' $out/root.img > $out/.root_part_size
 
     cd $out; ${pkgs.zip}/bin/zip -r "$filename".zip esp root.img
 
-    rm -rf $out/{esp,root.img,boot.img,nixos.img}
+    rm -rf $out/{esp,root.img,boot.img}
 
     printf "${date}" > $out/.release_date
   '';

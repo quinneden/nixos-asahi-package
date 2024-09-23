@@ -39,7 +39,13 @@
     rm -rf /tmp/.fwsetup
   '';
 
-  hardware.asahi.extractPeripheralFirmware = false;
+  hardware.asahi = {
+    extractPeripheralFirmware = false;
+    experimentalGPUInstallMode = "replace";
+    setupAsahiSound = true;
+    useExperimentalGPUDriver = true;
+    withRust = true;
+  };
 
   documentation = {
     enable = false;
@@ -56,14 +62,31 @@
     options = ["fmask=0022" "dmask=0022"];
   };
 
+  zramSwap = {
+    enable = true;
+    memoryPercent = 100;
+  };
+
   nix.settings = {
     warn-dirty = false;
     experimental-features = ["nix-command" "flakes"];
+    extra-substituters = [
+      "https://nixos-asahi.cachix.org"
+      "https://cache.lix.systems"
+    ];
+    extra-trusted-public-keys = [
+      "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
+      "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o="
+    ];
   };
 
-  networking.wireless.iwd = {
-    enable = true;
-    settings.General.EnableNetworkConfiguration = true;
+  networking = {
+    networkmanager.enable = true;
+    networkmanager.wifi.backend = "iwd";
+    wireless.iwd = {
+      enable = true;
+      settings.General.EnableNetworkConfiguration = true;
+    };
   };
 
   users.mutableUsers = true;
