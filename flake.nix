@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixos-asahi-starter.url = "github:quinneden/nixos-asahi-starter";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -28,6 +29,7 @@
 
   outputs = {
     nixos-apple-silicon,
+    nixos-asahi-starter,
     nixos-generators,
     lix-module,
     nixpkgs,
@@ -70,30 +72,6 @@
       asahiPackage = pkgs.callPackage ./generate-package.nix {inherit self pkgs;};
     });
 
-    # nixosConfigurations = {
-    #   nixos = nixpkgs.lib.nixosSystem {
-    #     system = "aarch64-linux";
-    #     pkgs = import nixpkgs {
-    #       config.allowUnfree = true;
-    #       overlays = [nixos-apple-silicon.overlays.default];
-    #     };
-    #     specialArgs = {
-    #       inherit self inputs;
-    #       username = "FIXME"; # Replace with your username.
-    #     };
-    #     modules = [
-    #       nixos-apple-silicon.nixosModules.default
-    #       lix-module.nixosModules.default
-    #       ./configuration.nix
-    #       {
-    #         boot.postBootCommands = ''
-    #           if [[ ! -e /etc/nixos ]]; then
-    #             cp -r ${./nixos} /etc/
-    #           fi
-    #         '';
-    #       }
-    #     ];
-    #   };
-    # };
+    templates.default = nixos-asahi-starter.templates.default;
   };
 }

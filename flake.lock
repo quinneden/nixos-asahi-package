@@ -120,6 +120,24 @@
         "type": "github"
       }
     },
+    "nixos-asahi-starter": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1727129040,
+        "narHash": "sha256-qx7cxnjB/Bso1bEyAZrC9G+Y/xsDNaCBsKpN0NR6Vyg=",
+        "owner": "quinneden",
+        "repo": "nixos-asahi-starter",
+        "rev": "f3726c014f741384bdab5b477a216c672532d876",
+        "type": "github"
+      },
+      "original": {
+        "owner": "quinneden",
+        "repo": "nixos-asahi-starter",
+        "type": "github"
+      }
+    },
     "nixos-generators": {
       "inputs": {
         "nixlib": "nixlib",
@@ -145,6 +163,22 @@
       "locked": {
         "lastModified": 1726937504,
         "narHash": "sha256-bvGoiQBvponpZh8ClUcmJ6QnsNKw0EMrCQJARK3bI1c=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "9357f4f23713673f310988025d9dc261c20e70c6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1726937504,
+        "narHash": "sha256-bvGoiQBvponpZh8ClUcmJ6QnsNKw0EMrCQJARK3bI1c=",
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "9357f4f23713673f310988025d9dc261c20e70c6",
@@ -161,8 +195,9 @@
       "inputs": {
         "lix-module": "lix-module",
         "nixos-apple-silicon": "nixos-apple-silicon",
+        "nixos-asahi-starter": "nixos-asahi-starter",
         "nixos-generators": "nixos-generators",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs_2"
       }
     },
     "rust-overlay": {
