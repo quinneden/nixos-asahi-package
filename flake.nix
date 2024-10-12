@@ -20,7 +20,6 @@
 
   outputs = {
     nixos-apple-silicon,
-    nixos-asahi-starter,
     nixos-generators,
     lix-module,
     nixpkgs,
@@ -33,7 +32,7 @@
         "aarch64-darwin"
       ] (system:
         function (import nixpkgs {
-          inherit system;
+          system = "aarch64-linux";
           config.allowUnfree = true;
           overlays = [nixos-apple-silicon.overlays.default];
         }));
@@ -43,14 +42,15 @@
       pkgs,
       ...
     }: {
-      default = self.packages.${self.system}.asahiPackage;
+      default = self.packages.${system}.asahiPackage;
       asahiImage = nixos-generators.nixosGenerate {
-        system = "aarch64-linux";
-        pkgs = import nixpkgs {
-          system = "aarch64-linux";
-          config.allowUnfree = true;
-          overlays = [nixos-apple-silicon.overlays.default];
-        };
+        inherit system pkgs;
+        # system = "aarch64-linux";
+        # pkgs = import nixpkgs {
+        #   system = "aarch64-linux";
+        #   config.allowUnfree = true;
+        #   overlays = [nixos-apple-silicon.overlays.default];
+        # };
         specialArgs = {inherit inputs;};
         modules = [
           ({...}: {nix.registry.nixpkgs.flake = nixpkgs;})
@@ -63,6 +63,6 @@
       asahiPackage = pkgs.callPackage ./generate-package.nix {inherit self pkgs;};
     });
 
-    templates.default = nixos-asahi-starter.templates.default;
+    templates.default = inputs.nixos-asahi-starter.templates.default;
   };
 }
