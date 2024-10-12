@@ -85,11 +85,19 @@
     },
     "nixlib": {
       "locked": {
+<<<<<<< HEAD
         "lastModified": 1727571693,
         "narHash": "sha256-b7sFVeqMtz8xntCL3tBY3O8suTg5PeF53LTL3eCcKyc=",
         "owner": "nix-community",
         "repo": "nixpkgs.lib",
         "rev": "bb58a3bf239e03fca9d51062e2fe028a4ea5a3d1",
+=======
+        "lastModified": 1728176478,
+        "narHash": "sha256-px3Q0W//c+mZ4kPMXq4poztsjtXM1Ja1rN+825YMDUQ=",
+        "owner": "nix-community",
+        "repo": "nixpkgs.lib",
+        "rev": "b61309c3c1b6013d36299bc8285612865b3b9e4c",
+>>>>>>> 5c753eb (Added: scripts/upload_to_r2.py Modified: .gitignore flake.lock flake.nix scripts/upload.sh)
         "type": "github"
       },
       "original": {
@@ -146,11 +154,19 @@
         ]
       },
       "locked": {
+<<<<<<< HEAD
         "lastModified": 1727917377,
         "narHash": "sha256-eefXdEPUMuhiV6Vy3ASSyApCseE9OoKDgL/G6qenw/4=",
         "owner": "nix-community",
         "repo": "nixos-generators",
         "rev": "9ae128172f823956e54947fe471bc6dfa670ecb4",
+=======
+        "lastModified": 1728522165,
+        "narHash": "sha256-UQpsJ0Ev6JBGsCYRlS2oOVvb+eWcDD0xTV3RVlqbeVU=",
+        "owner": "nix-community",
+        "repo": "nixos-generators",
+        "rev": "40c8d30c490414910fc63626ad1b67af7db40cd3",
+>>>>>>> 5c753eb (Added: scripts/upload_to_r2.py Modified: .gitignore flake.lock flake.nix scripts/upload.sh)
         "type": "github"
       },
       "original": {
@@ -177,11 +193,19 @@
     },
     "nixpkgs_2": {
       "locked": {
+<<<<<<< HEAD
         "lastModified": 1727802920,
         "narHash": "sha256-HP89HZOT0ReIbI7IJZJQoJgxvB2Tn28V6XS3MNKnfLs=",
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "27e30d177e57d912d614c88c622dcfdb2e6e6515",
+=======
+        "lastModified": 1728492678,
+        "narHash": "sha256-9UTxR8eukdg+XZeHgxW5hQA9fIKHsKCdOIUycTryeVw=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "5633bcff0c6162b9e4b5f1264264611e950c8ec7",
+>>>>>>> 5c753eb (Added: scripts/upload_to_r2.py Modified: .gitignore flake.lock flake.nix scripts/upload.sh)
         "type": "github"
       },
       "original": {
