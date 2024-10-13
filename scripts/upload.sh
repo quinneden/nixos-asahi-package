@@ -47,11 +47,11 @@ else
   echo "error: ${PKG}: file not found"; exit 1
 fi
 
-if [[ -d "${TMP}"/venv ]]; then
-  source "${TMP}"/venv/bin/activate
-else
-  python3 -m venv "${TMP}"/venv && source "${TMP}"/venv/bin/activate
+if [[ ! -d ./scripts/.venv ]]; then
+  python3 -m venv ./scripts/.venv && source ./scripts/.venv/bin/activate
   python3 -m pip install boto3
+else
+  source ./scripts/.venv/bin/activate
 fi
 
 read -r PRESIGNED_URL < <(python3 scripts/presign.py 2>/dev/null)
@@ -74,4 +74,5 @@ if upload; then
 fi
 
 unset RESULT DATE_TAG PKG TMP
+
 rm -rf "${TMP}"
