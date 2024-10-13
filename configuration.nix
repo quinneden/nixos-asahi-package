@@ -68,7 +68,7 @@
   };
 
   nix.settings = {
-    warn-dirty = false;
+    auto-optimise-store = true;
     experimental-features = ["nix-command" "flakes"];
     extra-substituters = [
       "https://nixos-asahi.cachix.org"
@@ -78,6 +78,7 @@
       "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
       "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o="
     ];
+    warn-dirty = false;
   };
 
   networking = {
@@ -88,6 +89,12 @@
       settings.General.EnableNetworkConfiguration = true;
     };
   };
+
+  environment.systemPackages = with pkgs; [
+    git
+    micro
+    asahi-bless
+  ];
 
   users.mutableUsers = true;
   users.users.root.initialPassword = "nixos";

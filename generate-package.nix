@@ -7,7 +7,7 @@
 }: let
   date = builtins.readFile (pkgs.runCommand "timestamp" {} "printf `date -u +%Y-%m-%d` > $out");
   generate-package = pkgs.writeShellScript "generate-package" ''
-    filename="nixos-asahi-${date}"
+    filename="nixos-asahi-${date}.zip"
 
     mkdir -p $out
     cp ${self.packages.aarch64-darwin.asahiImage}/nixos.img $out
@@ -25,7 +25,7 @@
 
     ${pkgs.coreutils}/bin/stat --printf '%s' $out/root.img > $out/.root_part_size
 
-    cd $out; ${pkgs.zip}/bin/zip -r "$filename".zip esp root.img
+    cd $out; ${pkgs.zip}/bin/zip -r "$filename" esp root.img
 
     rm -rf $out/{esp,root.img,boot.img}
 
