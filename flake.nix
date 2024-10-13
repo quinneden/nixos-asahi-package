@@ -43,6 +43,7 @@
       ...
     }: {
       default = self.packages.${system}.asahiPackage;
+      asahiPackage = pkgs.callPackage ./generate-package.nix {inherit self pkgs;};
       asahiImage = nixos-generators.nixosGenerate {
         inherit system pkgs;
         # system = "aarch64-linux";
@@ -60,7 +61,6 @@
         ];
         format = "raw-efi";
       };
-      asahiPackage = pkgs.callPackage ./generate-package.nix {inherit self pkgs;};
     });
 
     templates.default = inputs.nixos-asahi-starter.templates.default;

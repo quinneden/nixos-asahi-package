@@ -1,8 +1,4 @@
 .DS_Store
-package
 result
-image
-scripts/deprecated
-scripts/env_vars.sh
 scripts/secrets.sh
 **/venv
