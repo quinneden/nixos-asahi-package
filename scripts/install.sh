@@ -26,7 +26,6 @@ if true; then
     export INSTALLER_DATA=https://github.com/quinneden/nixos-asahi-package/raw/main/data/installer_data.json
     export REPO_BASE=https://cdn.qeden.systems
 
-    #TMP="$(mktemp -d)"
     TMP=/tmp/asahi-install
 
     echo
