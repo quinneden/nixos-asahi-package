@@ -33,7 +33,7 @@ jobs:
         run: |
           sudo systemctl restart nix-daemon.service
           sudo systemctl daemon-reload
-          sudo nix build -L .#packages.aarch64-linux.asahiPackage
+          nix build -L .#packages.aarch64-linux.asahiPackage
       - name: upload to bucket
         run: |
           sudo apt-get install -y python3 python3-pip
