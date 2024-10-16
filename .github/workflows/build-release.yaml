@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
+      id-token: read
     steps:
       - uses: actions/checkout@main
       - name: Install Nix
@@ -33,25 +33,19 @@ jobs:
         run: |
           sudo systemctl restart nix-daemon.service
           sudo systemctl daemon-reload
-          if sudo nix build -L .#packages.aarch64-linux.asahiPackage
-          then
-            cp $(readlink result)/{.root_part_size,.release_date,nixos-asahi-*.zip} ./
-            chmod 644 ./{.root_part_size,.release_date,nixos-asahi-*.zip}
-            echo "release_date=$(cat ./.release_date)" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Release
-        uses: softprops/action-gh-release@v2.0.8
-        with:
-          tag_name: release-${{ steps.build-package.outputs.release_date }}
-          name: NixOS Asahi-Installer Package ${{ steps.build-package.outputs.release_date }}
-          files: ./src/nixos-asahi-${{ steps.build-package.outputs.release_date }}.zip
-          draft: true
-      - name: Upload to R2
-        uses: ryand56/r2-upload-action@latest
-        with:
-          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
-          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
-          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          r2-bucket: ${{ secrets.R2_BUCKET }}
-          source-dir: ./.
-          destination-dir: ./
+          sudo nix build -L .#packages.aarch64-linux.asahiPackage
+      - name: upload to bucket
+        run: |
+          sudo apt-get install -y python3 python3-pip
+          ACCESS_KEY_ID=${{ secrets.ACCESS_KEY_ID }}; export ACCESS_KEY_ID
+          SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }}; export SECRET_ACCESS_KEY
+          BUCKET=${{ secrets.BUCKET }}; export BUCKET
+          REGION='auto'; export REGION
+          ./scripts/upload.sh
+      # - name: Release
+      #   uses: softprops/action-gh-release@v2.0.8
+      #   with:
+      #     tag_name: release-${{ steps.build-package.outputs.release_date }}
+      #     name: NixOS Asahi-Installer Package ${{ steps.build-package.outputs.release_date }}
+      #     files: ./src/nixos-asahi-${{ steps.build-package.outputs.release_date }}.zip
+      #     draft: true

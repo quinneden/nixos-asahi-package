@@ -4,7 +4,7 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-RESULT=$(readlink ./result)
+RESULT=$(realpath ./result)
 BASEURL="https://cdn.qeden.systems"
 DATE_TAG=$(cat "${RESULT}"/.release_date)
 PKG="nixos-asahi-${DATE_TAG}.zip"
@@ -13,17 +13,19 @@ TMP=$(mktemp -d /tmp/nixos-asahi-package.XXXXXXXXXX)
 
 export RESULT BASEURL DATE_TAG PKG ROOTSIZE TMP
 
-test -e ./scripts/secrets.sh && source ./scripts/secrets.sh
+[[ -e ./scripts/secrets.sh ]] && source ./scripts/secrets.sh
 
 confirm() {
-  while true; do
-    read -r -n 1 -p "$1 [y/n]: " REPLY
-    case $REPLY in
-      [yY]) echo ; return 0 ;;
-      [nN]) echo ; return 1 ;;
-      *) printf " \033[31m %s \n\033[0m" "invalid input"
-    esac
-  done
+  if ${CONFIRM:-true}; then
+    while true; do
+      read -r -n 1 -p "$1 [y/n]: " REPLY
+      case $REPLY in
+        [yY]) echo ; return 0 ;;
+        [nN]) echo ; return 1 ;;
+        *) echo ;;
+      esac
+    done
+  fi
 }
 
 upload() {
@@ -57,7 +59,7 @@ fi
 read -r PRESIGNED_URL < <(python3 scripts/presign.py 2>/dev/null)
 
 echo
-confirm "Begin upload?" || exit 0
+  confirm "Begin upload?" || exit 0
 echo
 
 if upload; then
