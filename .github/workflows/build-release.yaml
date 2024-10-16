@@ -25,7 +25,7 @@ jobs:
       - name: Setup qemu
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-aarch64 qemu-efi binfmt-support qemu-user-static
+          sudo apt-get install -y qemu-system-aarch64 qemu-efi-aarch64 binfmt-support qemu-user-static
           sudo mount -o remount,size=30G /run
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: nix build .#asahiPackage
