@@ -8,12 +8,15 @@ s3 = boto3.client(
     aws_secret_access_key=os.environ.get("SECRET_ACCESS_KEY", None),
 )
 
-bucket = str("temp0")
+bucket = str(os.environ.get("BUCKET", None))
 filename = str(os.environ.get("PKG", None))
 
 presigned_url = s3.generate_presigned_url(
     "put_object",
-    Params={"Bucket": bucket, "Key": filename, },
+    Params={
+        "Bucket": bucket,
+        "Key": filename,
+    },
     ExpiresIn=3600,
     HttpMethod="PUT",
 )
