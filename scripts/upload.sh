@@ -13,7 +13,7 @@ TMP=$(mktemp -d /tmp/nixos-asahi-package.XXXXXXXXXX)
 
 export RESULT BASEURL DATE_TAG PKG ROOTSIZE TMP
 
-[[ -e ./scripts/secrets.sh ]] && source ./scripts/secrets.sh
+[[ -f ./scripts/secrets.sh ]] && source ./scripts/secrets.sh
 
 confirm() {
   if ${CONFIRM:-true}; then
@@ -34,7 +34,7 @@ upload() {
     --url "${PRESIGNED_URL}" \
     --header "Content-Type: application/zip" \
     --header "accept: application/json" \
-    --data-binary @"${TMP}/${PKG}" | cat)
+    -T "${TMP}/${PKG}" | cat)
   then
     echo "Success! ${PKG} uploaded to bucket."
   else
