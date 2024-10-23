@@ -35,7 +35,7 @@ let
 
     ${pkgs.zip}/bin/zip -r "$filename".zip esp root.img
 
-    rm -rf esp root.img boot.img nixos.img
+    rm -rf boot.img nixos.img
 
     printf '%s' "${date}" > $out/.release_date
   '';
@@ -49,4 +49,7 @@ stdenv.mkDerivation {
     asahiImage
     generate-package
   ];
+  installPhase = ''
+    mv $out/build/nixos-asahi-*.zip $out
+  '';
 }
