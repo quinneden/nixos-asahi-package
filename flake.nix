@@ -1,5 +1,5 @@
 {
-  description = "Nix flake configuration for disk image to be used with asahi-linux installer.";
+  description = "Flake for nixos package for the asahi-linux installer.";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -55,28 +55,23 @@
         }:
         {
           default = self.packages.${system}.asahiPackage;
-          asahiPackage = pkgs.callPackage ./generate-package.nix { inherit self pkgs; };
+
+          asahiPackage = pkgs.callPackage ./generate-package.nix { inherit self pkgs inputs; };
+
           asahiImage = nixos-generators.nixosGenerate {
-            inherit system pkgs;
-            # system = "aarch64-linux";
-            # pkgs = import nixpkgs {
-            #   system = "aarch64-linux";
-            #   config.allowUnfree = true;
-            #   overlays = [nixos-apple-silicon.overlays.default];
-            # };
+            system = "aarch64-linux";
+            pkgs = import nixpkgs {
+              system = "aarch64-linux";
+              config.allowUnfree = true;
+              overlays = [ nixos-apple-silicon.overlays.default ];
+            };
             specialArgs = {
               inherit inputs;
             };
             modules = [
-              (
-                { ... }:
-                {
-                  nix.registry.nixpkgs.flake = nixpkgs;
-                }
-              )
               nixos-apple-silicon.nixosModules.default
               lix-module.nixosModules.lixFromNixpkgs
-              ./configuration.nix
+              ./nixos
             ];
             format = "raw-efi";
           };

@@ -2,40 +2,51 @@
   pkgs,
   stdenv,
   self,
+  system,
   lib,
   ...
-}: let
-  date = builtins.readFile (pkgs.runCommand "timestamp" {} "printf `date -u +%Y-%m-%d` > $out");
+}:
+let
+  date = builtins.readFile (pkgs.runCommand "timestamp" { } "printf `date -u +%Y-%m-%d` > $out");
+
+  asahiImage = self.packages.${system}.asahiImage;
+
   generate-package = pkgs.writeShellScript "generate-package" ''
     filename="nixos-asahi-${date}"
 
-    mkdir -p $out
-    cp ${self.packages.aarch64-darwin.asahiImage}/nixos.img $out
+    mkdir -p $out/build
 
-    start_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 $out/nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
-    sectors_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 $out/nixos.img | grep '^Partition size.*' | awk -F' ' '{print $3}'`
-    start_boot=`${pkgs.gptfdisk}/bin/sgdisk --info=1 $out/nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
-    sectors_boot=`${pkgs.gptfdisk}/bin/sgdisk --info=1 $out/nixos.img | grep '^Partition size.*' | awk -F' ' '{print $3}'`
+    cd $out/build
 
-    dd if=$out/nixos.img of=$out/root.img bs=512 skip="$start_root" count="$sectors_root"
-    dd if=$out/nixos.img of=$out/boot.img bs=512 skip="$start_boot" count="$sectors_boot"
+    cp ${asahiImage}/nixos.img ./
 
-    ${pkgs.p7zip}/bin/7z x $out/boot.img -o$out/esp
-    rm -rf $out/esp/EFI/nixos/.extra-files
+    start_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 ./nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
+    sectors_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 ./nixos.img | grep '^Partition size.*' | awk -F' ' '{print $3}'`
+    start_boot=`${pkgs.gptfdisk}/bin/sgdisk --info=1 ./nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
+    sectors_boot=`${pkgs.gptfdisk}/bin/sgdisk --info=1 ./nixos.img | grep '^Partition size.*' | awk -F' ' '{print $3}'`
 
-    ${pkgs.coreutils}/bin/stat --printf '%s' $out/root.img > $out/.root_part_size
+    dd if=nixos.img of=root.img bs=512 skip="$start_root" count="$sectors_root"
+    dd if=nixos.img of=boot.img bs=512 skip="$start_boot" count="$sectors_boot"
 
-    cd $out; ${pkgs.zip}/bin/zip -r "$filename".zip esp root.img
+    ${pkgs.p7zip}/bin/7z x $out/build/boot.img -o'esp'
+    rm -rf esp/EFI/nixos/.extra-files
 
-    rm -rf $out/{esp,root.img,boot.img}
+    ${pkgs.coreutils}/bin/stat --printf '%s' root.img > $out/.root_part_size
 
-    printf "${date}" > $out/.release_date
+    ${pkgs.zip}/bin/zip -r "$filename".zip esp root.img
+
+    rm -rf esp root.img boot.img nixos.img
+
+    printf '%s' "${date}" > $out/.release_date
   '';
 in
-  stdenv.mkDerivation {
-    name = "nixos-asahi-installer-package";
-    version = date;
-    pname = "nixos-asahi-installer-package-${date}";
-    src = ./.;
-    buildInputs = [generate-package];
-  }
+stdenv.mkDerivation {
+  name = "nixos-asahi-installer-package";
+  version = date;
+  pname = "nixos-asahi-installer-package-${date}";
+  src = ./.;
+  buildInputs = [
+    asahiImage
+    generate-package
+  ];
+}
