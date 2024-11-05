@@ -60,18 +60,13 @@
 
           asahiImage = nixos-generators.nixosGenerate {
             system = "aarch64-linux";
-            pkgs = import nixpkgs {
-              system = "aarch64-linux";
-              config.allowUnfree = true;
-              overlays = [ nixos-apple-silicon.overlays.default ];
-            };
             specialArgs = {
               inherit inputs;
             };
             modules = [
               nixos-apple-silicon.nixosModules.default
               lix-module.nixosModules.default
-              ./nixos
+              ./nixos/config.nix
             ];
             format = "raw-efi";
           };
