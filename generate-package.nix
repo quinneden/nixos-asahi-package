@@ -37,7 +37,7 @@ let
 
     rm -rf boot.img nixos.img
 
-    printf '%s' "${date}" > $out/.release_date
+    ${pkgs.coreutils}/bin/printf '%s' "${date}" > $out/.release_date
   '';
 in
 stdenv.mkDerivation {

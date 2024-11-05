@@ -70,7 +70,7 @@
             };
             modules = [
               nixos-apple-silicon.nixosModules.default
-              lix-module.nixosModules.lixFromNixpkgs
+              lix-module.nixosModules.default
               ./nixos
             ];
             format = "raw-efi";
