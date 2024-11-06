@@ -72,7 +72,7 @@ if upload; then
     git add ./data/installer_data.json
     git commit -m "release: NixOS Asahi-Installer Package ${DATE_TAG}"
     git tag "release-${DATE_TAG}"
-    git push -u origin "release-${DATE_TAG}"
+    git push -u origin/main "release-${DATE_TAG}"
 fi
 
 unset RESULT DATE_TAG PKG TMP

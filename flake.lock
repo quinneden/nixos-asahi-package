@@ -98,7 +98,7 @@
         "type": "github"
       }
     },
-    "nixos-apple-silicon": {
+    "nixos-asahi": {
       "inputs": {
         "flake-compat": "flake-compat",
         "nixpkgs": [
@@ -107,16 +107,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1725418254,
-        "narHash": "sha256-2zPzPP9Eu5NxgJxTVcuCCX5xh7CWy7rYaLHfaAZS6H8=",
-        "owner": "tpwrules",
-        "repo": "nixos-apple-silicon",
-        "rev": "c5f944f49a052232015bb3c03524b69e3fdd2aa4",
+        "lastModified": 1729779640,
+        "narHash": "sha256-M9t4Ta9d76aVqd1mkLBl8zFSWYc8pv6AZTy1SU5bVp0=",
+        "owner": "zzywysm",
+        "repo": "nixos-asahi",
+        "rev": "5f8823f3543cbf9566d5af49b3a3c18539681eac",
         "type": "github"
       },
       "original": {
-        "owner": "tpwrules",
-        "repo": "nixos-apple-silicon",
+        "owner": "zzywysm",
+        "repo": "nixos-asahi",
         "type": "github"
       }
     },
@@ -194,7 +194,7 @@
     "root": {
       "inputs": {
         "lix-module": "lix-module",
-        "nixos-apple-silicon": "nixos-apple-silicon",
+        "nixos-asahi": "nixos-asahi",
         "nixos-asahi-starter": "nixos-asahi-starter",
         "nixos-generators": "nixos-generators",
         "nixpkgs": "nixpkgs_2"

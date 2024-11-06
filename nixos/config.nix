@@ -76,6 +76,11 @@
     memoryPercent = 100;
   };
 
+  nixpkgs = {
+    config.allowunfree = true;
+    overlays = [ inputs.nixos-asahi.overlays.default ];
+  };
+
   nix.settings = {
     warn-dirty = false;
     experimental-features = [

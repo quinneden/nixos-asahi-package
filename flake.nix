@@ -3,26 +3,30 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixos-asahi-starter.url = "github:quinneden/nixos-asahi-starter";
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nixos-apple-silicon = {
-      url = "github:tpwrules/nixos-apple-silicon";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+
     lix-module = {
       url = "https://git.lix.systems/lix-project/nixos-module/archive/2.91.0.tar.gz";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nixos-asahi = {
+      url = "github:zzywysm/nixos-asahi";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixos-asahi-starter.url = "github:quinneden/nixos-asahi-starter";
   };
 
   outputs =
     {
-      nixos-apple-silicon,
-      nixos-generators,
       lix-module,
+      nixos-asahi,
+      nixos-generators,
       nixpkgs,
       self,
       ...
@@ -41,7 +45,7 @@
               import nixpkgs {
                 system = "aarch64-linux";
                 config.allowUnfree = true;
-                overlays = [ nixos-apple-silicon.overlays.default ];
+                overlays = [ nixos-asahi.overlays.default ];
               }
             )
           );
@@ -64,7 +68,7 @@
               inherit inputs;
             };
             modules = [
-              nixos-apple-silicon.nixosModules.default
+              nixos-asahi.nixosModules.default
               lix-module.nixosModules.default
               ./nixos/config.nix
             ];
