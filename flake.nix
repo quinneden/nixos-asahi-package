@@ -2,79 +2,70 @@
   description = "Flake for nixos package for the asahi-linux installer.";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixos-asahi-starter.url = "github:quinneden/nixos-asahi-starter";
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
+    nixos-asahi = {
+      url = "github:zzywysm/nixos-asahi";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixos-apple-silicon = {
-      url = "github:tpwrules/nixos-apple-silicon";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    lix-module = {
-      url = "https://git.lix.systems/lix-project/nixos-module/archive/2.91.0.tar.gz";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # lix-module = {
+    #   url = "https://git.lix.systems/lix-project/nixos-module/archive/2.91.0.tar.gz";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
   };
 
   outputs =
     {
-      nixos-apple-silicon,
-      nixos-generators,
-      lix-module,
       nixpkgs,
       self,
       ...
     }@inputs:
     let
-      forAllSystems =
-        function:
-        nixpkgs.lib.genAttrs
-          [
-            "aarch64-linux"
-            "aarch64-darwin"
-          ]
-          (
-            system:
-            function (
-              import nixpkgs {
-                system = "aarch64-linux";
-                config.allowUnfree = true;
-                overlays = [ nixos-apple-silicon.overlays.default ];
-              }
-            )
-          );
+      systems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+      ];
+      forAllSystems = inputs.nixpkgs.lib.genAttrs systems;
     in
     {
       packages = forAllSystems (
+        system:
+        let
+          pkgs = import inputs.nixpkgs {
+            config.allowUnfree = true;
+            crossSystem.system = "aarch64-linux";
+            localSystem.system = system;
+            overlays = [ inputs.nixos-asahi.overlays.default ];
+          };
+        in
         {
-          system,
-          pkgs,
-          ...
-        }:
-        {
-          default = self.packages.${system}.asahiPackage;
-
           asahiPackage = pkgs.callPackage ./generate-package.nix { inherit self pkgs inputs; };
 
-          asahiImage = nixos-generators.nixosGenerate {
-            system = "aarch64-linux";
-            pkgs = import nixpkgs {
-              system = "aarch64-linux";
-              config.allowUnfree = true;
-              overlays = [ nixos-apple-silicon.overlays.default ];
-            };
-            specialArgs = {
-              inherit inputs;
-            };
-            modules = [
-              nixos-apple-silicon.nixosModules.default
-              lix-module.nixosModules.default
-              ./nixos
-            ];
-            format = "raw-efi";
-          };
+          asahiImage =
+            let
+              image-config = inputs.nixpkgs.lib.nixosSystem {
+                inherit system;
+
+                specialArgs = {
+                  inherit inputs;
+                  modulesPath = inputs.nixpkgs + "/nixos/modules";
+                };
+
+                pkgs = import inputs.nixpkgs {
+                  crossSystem.system = "aarch64-linux";
+                  localSystem.system = system;
+                  overlays = [ inputs.nixos-asahi.overlays.default ];
+                };
+
+                modules = [
+                  inputs.nixos-asahi.nixosModules.default
+                  ./nixos
+                ];
+              };
+
+              config = image-config.config;
+            in
+            config.system.build.image;
         }
       );
 

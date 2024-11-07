@@ -1,4 +1,5 @@
 {
+  make-disk-image,
   modulesPath,
   config,
   inputs,
@@ -9,7 +10,6 @@
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
-    # ./plasma-desktop.nix
   ];
 
   boot = {
@@ -70,6 +70,18 @@
       "dmask=0022"
     ];
   };
+
+  system.build.image = (
+    import "${toString modulesPath} + /../lib/make-disk-image.nix" {
+      inherit lib config pkgs;
+      partitionTableType = "efi";
+      fsType = "ext4";
+      # configFile = "";
+      memSize = 2048;
+      name = "nixos-asahi-image";
+      format = "raw";
+    }
+  );
 
   zramSwap = {
     enable = true;
