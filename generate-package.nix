@@ -35,7 +35,7 @@ let
 
     ${pkgs.zip}/bin/zip -r "$filename".zip esp root.img
 
-    rm -rf boot.img nixos.img
+    # rm -rf boot.img nixos.img
 
     ${pkgs.coreutils}/bin/printf '%s' "${date}" > $out/.release_date
   '';

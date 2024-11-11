@@ -71,4 +71,10 @@
 
       templates.default = inputs.nixos-asahi-starter.templates.default;
     };
+  nixConfig = {
+    extra-substituters = [ "https://nixos-asahi.cachix.org" ];
+    extra-trusted-public-keys = [
+      "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
+    ];
+  };
 }

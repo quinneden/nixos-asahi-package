@@ -63,16 +63,16 @@ echo
 echo
 
 if upload; then
-  confirm "Update installer data and push to git?" || exit 0
+  confirm "Update installer data?" || exit 0
 
   jq -r < ./data/template/installer_data.json \
     ".[].[].package = \"${BASEURL}/${PKG}\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package ${DATE_TAG}\"" \
     > ./data/installer_data.json
 
     git add ./data/installer_data.json
-    git commit -m "release: NixOS Asahi-Installer Package ${DATE_TAG}"
-    git tag "release-${DATE_TAG}"
-    git push -u origin "release-${DATE_TAG}"
+    git commit -m "release: NixOS Asahi-Installer Package $DATE_TAG"
+    git tag "release-$DATE_TAG"
+    git push -u origin "release-$DATE_TAG"
 fi
 
 unset RESULT DATE_TAG PKG TMP

@@ -23,7 +23,10 @@
     };
     kernelModules = [ ];
     extraModulePackages = [ ];
-    loader.systemd-boot.enable = true;
+    loader.systemd-boot = {
+      enable = true;
+      extraFiles = [ ]; # Breaks boot for some reason
+    };
     loader.efi.canTouchEfiVariables = false;
   };
 
@@ -58,7 +61,7 @@
 
   fileSystems."/" = {
     device = lib.mkForce "/dev/disk/by-uuid/f222513b-ded1-49fa-b591-20ce86a2fe7f";
-    fsType = lib.mkForce "btrfs";
+    fsType = lib.mkForce "ext4";
   };
 
   fileSystems."/boot" = {
@@ -113,11 +116,11 @@
 
   users.mutableUsers = true;
 
-  users.users.nixos = {
-    isNormalUser = true;
-    initialHashedPassword = "";
-    extraGroups = [ "wheel" ];
-  };
+  # users.users.nixos = {
+  #   isNormalUser = true;
+  #   initialHashedPassword = "";
+  #   extraGroups = [ "wheel" ];
+  # };
 
   users.users.root.initialHashedPassword = "";
 
