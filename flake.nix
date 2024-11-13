@@ -3,15 +3,16 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.05";
     nixos-asahi-starter.url = "github:quinneden/nixos-asahi-starter";
     nixos-asahi = {
       url = "github:zzywysm/nixos-asahi";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+    };
+    lix-module = {
+      url = "https://git.lix.systems/lix-project/nixos-module/archive/2.91.0.tar.gz";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # lix-module = {
-    #   url = "https://git.lix.systems/lix-project/nixos-module/archive/2.91.0.tar.gz";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
   };
 
   outputs =
@@ -59,6 +60,7 @@
 
                 modules = [
                   inputs.nixos-asahi.nixosModules.default
+                  inputs.lix-module.nixosModules.default
                   ./nixos
                 ];
               };

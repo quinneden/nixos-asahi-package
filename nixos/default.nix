@@ -25,7 +25,7 @@
     extraModulePackages = [ ];
     loader.systemd-boot = {
       enable = true;
-      extraFiles = [ ]; # Breaks boot for some reason
+      extraFiles = { }; # Breaks boot for some reason
     };
     loader.efi.canTouchEfiVariables = false;
   };
