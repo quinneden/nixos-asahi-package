@@ -30,13 +30,13 @@ let
     dd if=nixos.img of=boot.img bs=512 skip="$start_boot" count="$sectors_boot"
 
     ${pkgs.p7zip}/bin/7z x $out/build/boot.img -o'esp'
-    # rm -rf esp/EFI/nixos/.extra-files
+    rm -rf esp/EFI/nixos/.extra-files
 
     ${pkgs.coreutils}/bin/stat --printf '%s' root.img > $out/.root_part_size
 
     ${pkgs.zip}/bin/zip -r "$filename".zip esp root.img
 
-    # rm -rf boot.img root.img nixos.img
+    rm -rf boot.img nixos.img
 
     ${pkgs.coreutils}/bin/printf '%s' "$DATE" > $out/.release_date
   '';

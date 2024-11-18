@@ -24,7 +24,7 @@
     extraModulePackages = [ ];
     loader = {
       systemd-boot.enable = true;
-      systemd-boot.extraFiles = lib.mkForce { }; # Breaks boot for some reason
+      # systemd-boot.extraFiles = lib.mkForce { }; # Breaks boot for some reason
       efi.canTouchEfiVariables = false;
     };
   };
