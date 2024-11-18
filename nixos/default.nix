@@ -1,8 +1,7 @@
 {
-  make-disk-image,
   modulesPath,
+  make-disk-image,
   config,
-  inputs,
   pkgs,
   lib,
   ...
@@ -23,11 +22,11 @@
     };
     kernelModules = [ ];
     extraModulePackages = [ ];
-    loader.systemd-boot = {
-      enable = true;
-      extraFiles = { }; # Breaks boot for some reason
+    loader = {
+      systemd-boot.enable = true;
+      systemd-boot.extraFiles = lib.mkForce { }; # Breaks boot for some reason
+      efi.canTouchEfiVariables = false;
     };
-    loader.efi.canTouchEfiVariables = false;
   };
 
   boot.postBootCommands =
@@ -55,13 +54,14 @@
     experimentalGPUInstallMode = "replace";
     useExperimentalGPUDriver = true;
     setupAsahiSound = true;
+    withRust = true;
   };
 
   documentation.enable = false;
 
   fileSystems."/" = {
     device = lib.mkForce "/dev/disk/by-uuid/f222513b-ded1-49fa-b591-20ce86a2fe7f";
-    fsType = lib.mkForce "ext4";
+    fsType = "ext4";
   };
 
   fileSystems."/boot" = {
@@ -111,7 +111,6 @@
 
   environment.systemPackages = with pkgs; [
     git
-    btrfs-progs
   ];
 
   users.mutableUsers = true;

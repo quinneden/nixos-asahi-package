@@ -3,11 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.05";
     nixos-asahi-starter.url = "github:quinneden/nixos-asahi-starter";
-    nixos-asahi = {
-      url = "github:zzywysm/nixos-asahi";
-      inputs.nixpkgs.follows = "nixpkgs-stable";
+    nixos-apple-silicon = {
+      url = "github:tpwrules/nixos-apple-silicon";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     lix-module = {
       url = "https://git.lix.systems/lix-project/nixos-module/archive/2.91.0.tar.gz";
@@ -36,7 +35,7 @@
             config.allowUnfree = true;
             crossSystem.system = "aarch64-linux";
             localSystem.system = system;
-            overlays = [ inputs.nixos-asahi.overlays.default ];
+            overlays = [ inputs.nixos-apple-silicon.overlays.default ];
           };
         in
         {
@@ -46,6 +45,7 @@
             let
               image-config = inputs.nixpkgs.lib.nixosSystem {
                 inherit system;
+                # system = "aarch64-linux";
 
                 specialArgs = {
                   inherit inputs;
@@ -53,14 +53,15 @@
                 };
 
                 pkgs = import inputs.nixpkgs {
+                  config.allowUnfree = true;
                   crossSystem.system = "aarch64-linux";
                   localSystem.system = system;
-                  overlays = [ inputs.nixos-asahi.overlays.default ];
+                  overlays = [ inputs.nixos-apple-silicon.overlays.default ];
                 };
 
                 modules = [
-                  inputs.nixos-asahi.nixosModules.default
-                  inputs.lix-module.nixosModules.default
+                  inputs.nixos-apple-silicon.nixosModules.default
+                  # inputs.lix-module.nixosModules.default
                   ./nixos
                 ];
               };
