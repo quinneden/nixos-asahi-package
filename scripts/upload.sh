@@ -11,9 +11,11 @@ PKG="nixos-asahi-${DATE_TAG}.zip"
 ROOTSIZE=$(cat "${RESULT}"/.root_part_size)
 TMP=$(mktemp -d /tmp/nixos-asahi-package.XXXXXXXXXX)
 
+trap 'rm -rf ${TMP}' EXIT
+
 export RESULT BASEURL DATE_TAG PKG ROOTSIZE TMP
 
-[[ -f ./scripts/secrets.sh ]] && source ./scripts/secrets.sh
+source ./scripts/secrets.sh
 
 confirm() {
   if ${CONFIRM:-true}; then
@@ -41,6 +43,7 @@ upload() {
     exit 1
   fi
 }
+
 
 if [[ -e ${RESULT}/${PKG} ]]; then
   cp -a "${RESULT}"/"${PKG}" "${TMP}"
@@ -76,5 +79,3 @@ if upload; then
 fi
 
 unset RESULT DATE_TAG PKG TMP
-
-rm -rf "${TMP}"
