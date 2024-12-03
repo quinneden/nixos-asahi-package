@@ -12,21 +12,14 @@
   ];
 
   boot = {
-    initrd = {
-      availableKernelModules = [
-        "xhci_pci"
-        "usb_storage"
-        "usbhid"
-      ];
-      kernelModules = [ ];
-    };
-    kernelModules = [ ];
-    extraModulePackages = [ ];
-    loader = {
-      systemd-boot.enable = true;
-      # systemd-boot.extraFiles = lib.mkForce { }; # Breaks boot for some reason
-      efi.canTouchEfiVariables = false;
-    };
+    initrd.availableKernelModules = [
+      "xhci_pci"
+      "usb_storage"
+      "usbhid"
+    ];
+    loader.systemd-boot.enable = true;
+    loader.efi.canTouchEfiVariables = false;
+    growPartition = true;
   };
 
   boot.postBootCommands =
