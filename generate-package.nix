@@ -1,9 +1,9 @@
 {
-  pkgs,
-  stdenv,
-  self,
-  system,
   lib,
+  pkgs,
+  self,
+  stdenv,
+  system,
   ...
 }:
 let

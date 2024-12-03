@@ -46,7 +46,7 @@ upload() {
 
 
 if [[ -e ${RESULT}/${PKG} ]]; then
-  cp -a "${RESULT}"/"${PKG}" "${TMP}"
+  cp -a "${RESULT}/${PKG}" "${TMP}"
   chmod 644 "${TMP}/${PKG}"
 else
   echo "error: ${PKG}: file not found"; exit 1
@@ -72,10 +72,10 @@ if upload; then
     ".[].[].package = \"${BASEURL}/${PKG}\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package ${DATE_TAG}\"" \
     > ./data/installer_data.json
 
-    git add ./data/installer_data.json
-    git commit -m "release: NixOS Asahi-Installer Package $DATE_TAG"
-    git tag "release-$DATE_TAG"
-    git push -u origin "release-$DATE_TAG"
+#     git add ./data/installer_data.json
+#     git commit -m "release: NixOS Asahi-Installer Package $DATE_TAG"
+#     git tag "release-$DATE_TAG"
+#     git push -u origin "release-$DATE_TAG"
 fi
 
 unset RESULT DATE_TAG PKG TMP

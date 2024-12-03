@@ -72,7 +72,7 @@
       partitionTableType = "efi";
       fsType = "ext4";
       # configFile = "";
-      memSize = 2048;
+      memSize = 8096;
       name = "nixos-asahi-image";
       format = "raw";
     }
