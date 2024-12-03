@@ -1,7 +1,7 @@
 {
   modulesPath,
+  make-disk-image,
   config,
-  inputs,
   pkgs,
   lib,
   ...
@@ -9,22 +9,17 @@
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
-    # ./plasma-desktop.nix
   ];
 
   boot = {
-    initrd = {
-      availableKernelModules = [
-        "xhci_pci"
-        "usb_storage"
-        "usbhid"
-      ];
-      kernelModules = [ ];
-    };
-    kernelModules = [ ];
-    extraModulePackages = [ ];
+    initrd.availableKernelModules = [
+      "xhci_pci"
+      "usb_storage"
+      "usbhid"
+    ];
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = false;
+    growPartition = true;
   };
 
   boot.postBootCommands =
@@ -50,8 +45,8 @@
   hardware.asahi = {
     extractPeripheralFirmware = false;
     experimentalGPUInstallMode = "replace";
-    setupAsahiSound = true;
     useExperimentalGPUDriver = true;
+    setupAsahiSound = true;
     withRust = true;
   };
 
@@ -59,7 +54,7 @@
 
   fileSystems."/" = {
     device = lib.mkForce "/dev/disk/by-uuid/f222513b-ded1-49fa-b591-20ce86a2fe7f";
-    fsType = lib.mkForce "btrfs";
+    fsType = "ext4";
   };
 
   fileSystems."/boot" = {
@@ -70,6 +65,18 @@
       "dmask=0022"
     ];
   };
+
+  system.build.image = (
+    import "${toString modulesPath} + /../lib/make-disk-image.nix" {
+      inherit lib config pkgs;
+      partitionTableType = "efi";
+      fsType = "ext4";
+      # configFile = "";
+      memSize = 2048;
+      name = "nixos-asahi-image";
+      format = "raw";
+    }
+  );
 
   zramSwap = {
     enable = true;
@@ -82,12 +89,8 @@
       "nix-command"
       "flakes"
     ];
-    extra-substituters = [
-      "https://cache.lix.systems"
-    ];
-    extra-trusted-public-keys = [
-      "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o="
-    ];
+    extra-substituters = [ "https://cache.lix.systems" ];
+    extra-trusted-public-keys = [ "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o=" ];
   };
 
   networking = {
@@ -101,16 +104,15 @@
 
   environment.systemPackages = with pkgs; [
     git
-    btrfs-progs
   ];
 
   users.mutableUsers = true;
 
-  users.users.nixos = {
-    isNormalUser = true;
-    initialHashedPassword = "";
-    extraGroups = [ "wheel" ];
-  };
+  # users.users.nixos = {
+  #   isNormalUser = true;
+  #   initialHashedPassword = "";
+  #   extraGroups = [ "wheel" ];
+  # };
 
   users.users.root.initialHashedPassword = "";
 

@@ -12,7 +12,8 @@ let
   asahiImage = self.packages.${system}.asahiImage;
 
   generate-package = pkgs.writeShellScript "generate-package" ''
-    filename="nixos-asahi-${date}"
+    DATE=$(date -u +%Y-%m-%d)
+    filename="nixos-asahi-$DATE"
 
     mkdir -p $out/build
 
@@ -37,15 +38,15 @@ let
 
     rm -rf boot.img nixos.img
 
-    ${pkgs.coreutils}/bin/printf '%s' "${date}" > $out/.release_date
+    ${pkgs.coreutils}/bin/printf '%s' "$DATE" > $out/.release_date
   '';
 in
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   name = "nixos-asahi-installer-package";
-  version = date;
-  pname = "nixos-asahi-installer-package-${date}";
+  version = "0.0.2";
+  pname = "nixos-asahi-installer-package-${version}";
   src = ./.;
-  buildInputs = [
+  nativeBuildInputs = [
     asahiImage
     generate-package
   ];

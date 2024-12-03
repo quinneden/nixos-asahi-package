@@ -11,9 +11,11 @@ PKG="nixos-asahi-${DATE_TAG}.zip"
 ROOTSIZE=$(cat "${RESULT}"/.root_part_size)
 TMP=$(mktemp -d /tmp/nixos-asahi-package.XXXXXXXXXX)
 
+trap 'rm -rf ${TMP}' EXIT
+
 export RESULT BASEURL DATE_TAG PKG ROOTSIZE TMP
 
-[[ -f ./scripts/secrets.sh ]] && source ./scripts/secrets.sh
+source ./scripts/secrets.sh
 
 confirm() {
   if ${CONFIRM:-true}; then
@@ -42,6 +44,7 @@ upload() {
   fi
 }
 
+
 if [[ -e ${RESULT}/${PKG} ]]; then
   cp -a "${RESULT}"/"${PKG}" "${TMP}"
   chmod 644 "${TMP}/${PKG}"
@@ -63,18 +66,16 @@ echo
 echo
 
 if upload; then
-  confirm "Update installer data and push to git?" || exit 0
+  confirm "Update installer data?" || exit 0
 
   jq -r < ./data/template/installer_data.json \
     ".[].[].package = \"${BASEURL}/${PKG}\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package ${DATE_TAG}\"" \
     > ./data/installer_data.json
 
     git add ./data/installer_data.json
-    git commit -m "release: NixOS Asahi-Installer Package ${DATE_TAG}"
-    git tag "release-${DATE_TAG}"
-    git push -u origin "release-${DATE_TAG}"
+    git commit -m "release: NixOS Asahi-Installer Package $DATE_TAG"
+    git tag "release-$DATE_TAG"
+    git push -u origin "release-$DATE_TAG"
 fi
 
 unset RESULT DATE_TAG PKG TMP
-
-rm -rf "${TMP}"
