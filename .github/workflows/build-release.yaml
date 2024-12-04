@@ -28,7 +28,7 @@ jobs:
           sudo apt-get install -y qemu-system-aarch64 qemu-efi-aarch64 binfmt-support qemu-user-static
           sudo mount -o remount,size=30G /run
       - uses: DeterminateSystems/magic-nix-cache-action@main
-      - name: nix build .#asahiPackage
+      - name: build asahi package
         id: build-package
         run: |
           sudo systemctl restart nix-daemon.service
@@ -42,10 +42,10 @@ jobs:
           BUCKET=${{ secrets.BUCKET }}; export BUCKET
           REGION='auto'; export REGION
           ./scripts/upload.sh
-      # - name: Release
-      #   uses: softprops/action-gh-release@v2.0.8
-      #   with:
-      #     tag_name: release-${{ steps.build-package.outputs.release_date }}
-      #     name: NixOS Asahi-Installer Package ${{ steps.build-package.outputs.release_date }}
-      #     files: ./src/nixos-asahi-${{ steps.build-package.outputs.release_date }}.zip
-      #     draft: true
+      - name: Release
+        uses: softprops/action-gh-release@v2.0.8
+        with:
+          tag_name: release-${{ steps.build-package.outputs.release_date }}
+          name: NixOS Asahi-Installer Package ${{ steps.build-package.outputs.release_date }}
+          files: ./result/nixos-asahi-${{ steps.build-package.outputs.release_date }}.zip
+          draft: true

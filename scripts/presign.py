@@ -1,4 +1,4 @@
-import boto3, os
+import boto3, os, sys
 from botocore.config import Config
 
 access_key_id = str(os.environ.get("ACCESS_KEY_ID", None))
@@ -15,15 +15,21 @@ s3 = boto3.client(
 )
 
 bucket = str(os.environ.get("BUCKET", None))
-filename = str(os.environ.get("PKG", None))
+
+if len(sys.argv) > 1:
+    if sys.argv[1] == "data":
+        filename = "installer_data.json"
+        prefix = "data/"
+    if sys.argv[1] == "pkg":
+        filename = str(os.environ.get("PKG", None))
+        prefix = "os/"
 
 presigned_url = s3.generate_presigned_url(
     ClientMethod="put_object",
     Params={
         "Bucket": bucket,
-        "Key": filename,
+        "Key": os.path.join(prefix, filename),
     },
-    ExpiresIn=3600,
     HttpMethod="PUT",
 )
 

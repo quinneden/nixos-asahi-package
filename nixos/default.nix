@@ -71,8 +71,7 @@
       inherit lib config pkgs;
       partitionTableType = "efi";
       fsType = "ext4";
-      # configFile = "";
-      memSize = 8096;
+      memSize = 4096;
       name = "nixos-asahi-image";
       format = "raw";
     }
