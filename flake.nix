@@ -72,6 +72,25 @@
       );
 
       templates.default = inputs.nixos-asahi-starter.templates.default;
+
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShellNoCC {
+            packages = with pkgs; [
+              (python3.withPackages (ps: [ ps.boto3 ]))
+              jq
+            ];
+            shellHook = ''
+              ROOT_PATH=$(git rev-parse --show-toplevel)
+              exec $ROOT_PATH/scripts/upload.sh
+            '';
+          };
+        }
+      );
     };
 
   nixConfig = {
