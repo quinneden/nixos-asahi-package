@@ -7,14 +7,13 @@ cd "$(dirname "$0")/.."
 RESULT=${RESULT:-"$(realpath ./result)"}
 BASEURL="https://cdn.qeden.systems"
 DATE_TAG=${DATE_TAG:-"$(cat "${RESULT}"/.release_date)"}
-INSTALLER_DATA="data/installer_data.json"
 PKG="nixos-asahi-${DATE_TAG}.zip"
 ROOTSIZE=${ROOTSIZE:-"$(cat "${RESULT}"/.root_part_size)"}
 TMP=$(mktemp -d /tmp/nixos-asahi-package.XXXXXXXXXX)
 
 trap 'rm -rf ${TMP}' EXIT
 
-export RESULT BASEURL DATE_TAG INSTALLER_DATA PKG ROOTSIZE TMP
+export RESULT BASEURL DATE_TAG PKG ROOTSIZE TMP
 
 source scripts/secrets.sh
 
@@ -30,34 +29,6 @@ confirm() {
     done
   fi
 }
-
-# upload_pkg() {
-#   if (curl --progress-bar \
-#     --request PUT \
-#     --url "${PRESIGNED_PKG_URL}" \
-#     --header "Content-Type: application/zip" \
-#     --header "accept: application/json" \
-#     -T "${TMP}/${PKG}" | cat)
-#   then
-#     echo "uploaded ${PKG}"
-#   else
-#     exit 1
-#   fi
-# }
-
-# upload_data() {
-#   if (curl --progress-bar \
-#     --request PUT \
-#     --url "${PRESIGNED_DATA_URL}" \
-#     --header "Content-Type: application/json" \
-#     --header "accept: application/json" \
-#     -T "${INSTALLER_DATA}" | cat)
-#   then
-#     echo "uploaded installer_data.json"
-#   else
-#     exit 1
-#   fi
-# }
 
 if [[ -e ${RESULT}/${PKG} ]]; then
   cp -a "${RESULT}/${PKG}" "${TMP}"
@@ -77,12 +48,20 @@ echo
   confirm "Begin upload?" || exit 0
 echo
 
-python3 scripts/main.py
+# python3 scripts/main.py pkg
 
 confirm "Update installer data?" || exit 0
 
-jq -r < ./data/template/installer_data.json \
-  ".[].[].package = \"${BASEURL}/os/${PKG}\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package ${DATE_TAG}\"" \
-  > "$INSTALLER_DATA"
+cp data/installer_data.json "$TMP"/old_installer_data.json
 
-unset RESULT BASEURL DATE_TAG INSTALLER_DATA PKG ROOTSIZE TMP
+if [[ $(jq -r '.os_list | last | .package' data/installer_data.json) != "$BASEURL/os/$PKG" ]]; then
+  jq -r < ./data/template/installer_data.json \
+    ".[].[].package = \"${BASEURL}/os/${PKG}\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package ${DATE_TAG}\"" \
+    > "$TMP/new_installer_data.json"
+
+  jq '.os_list += (input | .os_list)' "$TMP"/old_installer_data.json "$TMP"/new_installer_data.json > data/installer_data.json
+fi
+
+python3 scripts/main.py data
+
+unset RESULT BASEURL DATE_TAG PKG ROOTSIZE TMP
