@@ -73,6 +73,7 @@
 
       templates.default = inputs.nixos-asahi-starter.templates.default;
     };
+
   nixConfig = {
     extra-substituters = [ "https://nixos-asahi.cachix.org" ];
     extra-trusted-public-keys = [

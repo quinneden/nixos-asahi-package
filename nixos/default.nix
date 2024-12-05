@@ -1,6 +1,5 @@
 {
   modulesPath,
-  make-disk-image,
   config,
   pkgs,
   lib,
@@ -19,12 +18,22 @@
     ];
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = false;
-    growPartition = true;
   };
 
   boot.postBootCommands =
     let
       inherit (pkgs) asahi-fwextract;
+      expandOnBoot = ''
+        # Figure out device names for the boot device and root filesystem.
+        rootPart=$(${pkgs.util-linux}/bin/findmnt -n -o SOURCE /)
+        bootDevice=$(lsblk -npo PKNAME $rootPart)
+        partNum=$(lsblk -npo MAJ:MIN $rootPart | ${pkgs.gawk}/bin/awk -F: '{print $2}')
+
+        # Resize the root partition and the filesystem to fit the disk
+        echo ",+," | sfdisk -N$partNum --no-reread $bootDevice
+        ${pkgs.parted}/bin/partprobe
+        ${pkgs.e2fsprogs}/bin/resize2fs $rootPart
+      '';
     in
     ''
       echo Extracting Asahi firmware...
@@ -40,6 +49,10 @@
       mv vendorfw/* /lib/firmware
       popd
       rm -rf /tmp/.fwsetup
+
+      if [[ ! -f /nix/var/nix/profiles/default/system ]]; then
+        ${expandOnBoot}
+      fi
     '';
 
   hardware.asahi = {
@@ -71,7 +84,7 @@
       inherit lib config pkgs;
       partitionTableType = "efi";
       fsType = "ext4";
-      memSize = 4096;
+      memSize = 6144;
       name = "nixos-asahi-image";
       format = "raw";
     }
