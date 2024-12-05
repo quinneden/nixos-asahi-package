@@ -4,19 +4,19 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-RESULT=$(realpath ./result)
+RESULT=${RESULT:-"$(realpath ./result)"}
 BASEURL="https://cdn.qeden.systems"
-DATE_TAG=$(cat "${RESULT}"/.release_date)
+DATE_TAG=${DATE_TAG:-"$(cat "${RESULT}"/.release_date)"}
 INSTALLER_DATA="data/installer_data.json"
 PKG="nixos-asahi-${DATE_TAG}.zip"
-ROOTSIZE=$(cat "${RESULT}"/.root_part_size)
+ROOTSIZE=${ROOTSIZE:-"$(cat "${RESULT}"/.root_part_size)"}
 TMP=$(mktemp -d /tmp/nixos-asahi-package.XXXXXXXXXX)
 
 trap 'rm -rf ${TMP}' EXIT
 
 export RESULT BASEURL DATE_TAG INSTALLER_DATA PKG ROOTSIZE TMP
 
-source ./scripts/secrets.sh
+source scripts/secrets.sh
 
 confirm() {
   if ${CONFIRM:-true}; then
@@ -59,14 +59,6 @@ confirm() {
 #   fi
 # }
 
-upload_pkg() {
-  rclone copy --progress "$TMP/$PKG" r2:nixos-asahi/os
-}
-
-upload_data() {
-  rclone copy --progress "$INSTALLER_DATA" r2:nixos-asahi/data
-}
-
 if [[ -e ${RESULT}/${PKG} ]]; then
   cp -a "${RESULT}/${PKG}" "${TMP}"
   chmod 644 "${TMP}/${PKG}"
@@ -81,21 +73,16 @@ fi
 #   source ./scripts/.venv/bin/activate
 # fi
 
-# read -r PRESIGNED_PKG_URL < <(python3 scripts/presign.py pkg 2>/dev/null)
-# read -r PRESIGNED_DATA_URL < <(python3 scripts/presign.py data 2>/dev/null)
-
 echo
   confirm "Begin upload?" || exit 0
 echo
 
-if upload_pkg; then
-  confirm "Update installer data?" || exit 0
+python3 scripts/main.py
 
-  jq -r < ./data/template/installer_data.json \
-    ".[].[].package = \"${BASEURL}/os/${PKG}\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package ${DATE_TAG}\"" \
-    > "$INSTALLER_DATA"
+confirm "Update installer data?" || exit 0
 
-  upload_data
-fi
+jq -r < ./data/template/installer_data.json \
+  ".[].[].package = \"${BASEURL}/os/${PKG}\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package ${DATE_TAG}\"" \
+  > "$INSTALLER_DATA"
 
 unset RESULT BASEURL DATE_TAG INSTALLER_DATA PKG ROOTSIZE TMP
