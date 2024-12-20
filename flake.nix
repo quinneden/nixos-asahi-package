@@ -8,11 +8,16 @@
       url = "github:tpwrules/nixos-apple-silicon";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      flake = false;
+    };
   };
 
   outputs =
     {
       nixpkgs,
+      nixos-apple-silicon,
       self,
       ...
     }@inputs:
@@ -28,14 +33,16 @@
         system:
         let
           pkgs = import inputs.nixpkgs {
-            config.allowUnfree = true;
             crossSystem.system = "aarch64-linux";
             localSystem.system = system;
-            overlays = [ inputs.nixos-apple-silicon.overlays.default ];
+            overlays = [
+              nixos-apple-silicon.overlays.default
+              (import inputs.rust-overlay)
+            ];
           };
         in
         {
-          asahiPackage = pkgs.callPackage ./generate-package.nix { inherit self pkgs inputs; };
+          asahiPackage = pkgs.callPackage ./package.nix { inherit self pkgs inputs; };
 
           asahiImage =
             let
@@ -48,14 +55,13 @@
                 };
 
                 pkgs = import inputs.nixpkgs {
-                  config.allowUnfree = true;
                   crossSystem.system = "aarch64-linux";
                   localSystem.system = system;
-                  overlays = [ inputs.nixos-apple-silicon.overlays.default ];
+                  # overlays = [ ];
                 };
 
                 modules = [
-                  inputs.nixos-apple-silicon.nixosModules.default
+                  nixos-apple-silicon.nixosModules.default
                   ./nixos
                 ];
               };
@@ -67,25 +73,6 @@
       );
 
       templates.default = inputs.nixos-asahi-starter.templates.default;
-
-      devShells = forAllSystems (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-        {
-          default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              (python3.withPackages (ps: [ ps.boto3 ]))
-              jq
-            ];
-            shellHook = ''
-              ROOT_PATH=$(git rev-parse --show-toplevel)
-              exec $ROOT_PATH/scripts/upload.sh
-            '';
-          };
-        }
-      );
     };
 
   nixConfig = {
