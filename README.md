@@ -7,12 +7,12 @@ can package the image into a zipfile that can be used as a payload for the [asah
 
 Build raw-efi NixOS disk image.
 ```bash
-nix build .#packages.aarch64-linux.asahiImage
+nix build .#packages.aarch64-linux.nixosImage
 ```
 
 Build disk image and package for asahi-installer.
 ```bash
-nix build .#packages.aarch64-linux.asahiPackage
+nix build .#packages.aarch64-linux.installerPackage
 ```
 
 ## Credit
