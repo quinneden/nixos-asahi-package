@@ -32,7 +32,7 @@
         system:
         let
           pkgs = import inputs.nixpkgs {
-            config.allowUnfree = true;
+            # config.allowUnfree = true;
             crossSystem.system = "aarch64-linux";
             localSystem.system = system;
             overlays = [ inputs.nixos-apple-silicon.overlays.default ];
@@ -44,7 +44,7 @@
           asahiImage =
             let
               image-config = inputs.nixpkgs.lib.nixosSystem {
-                system = "aarch64-linux";
+                inherit system;
 
                 specialArgs = {
                   inherit inputs;
@@ -52,7 +52,7 @@
                 };
 
                 pkgs = import inputs.nixpkgs {
-                  config.allowUnfree = true;
+                  # config.allowUnfree = true;
                   crossSystem.system = "aarch64-linux";
                   localSystem.system = system;
                   overlays = [ inputs.nixos-apple-silicon.overlays.default ];
@@ -60,7 +60,7 @@
 
                 modules = [
                   inputs.nixos-apple-silicon.nixosModules.default
-                  inputs.lix-module.nixosModules.default
+                  inputs.lix-module.nixosModules.lixFromNixpkgs
                   ./nixos
                 ];
               };
@@ -73,36 +73,42 @@
 
       templates.default = inputs.nixos-asahi-starter.templates.default;
 
-      apps = forAllSystems (
+      devShells = forAllSystems (
         system:
         let
-          pkgs = import nixpkgs { inherit system; };
+          pkgs = inputs.nixpkgs.legacyPackages.${system};
+          secrets = builtins.fromJSON (builtins.readFile .secrets/secrets.json);
+          inherit (self.packages.${system}) asahiPackage;
         in
         {
-          upload = import ./upload.nix { inherit self pkgs; };
-          # let
-          #   pkgs = nixpkgs.legacyPackages.${system};
-          #   pythonWithBoto3 = inputs.nixpkgs.python3.withPackages (ps: [ ps.boto3 ]);
-          #   inherit (pkgs)
-          #     callPackage
-          #     jq
-          #     lib
-          #     self
-          #     writeShellScriptBin
-          #     ;
-          # in
-          # {
-          #   type = "app";
-          #   program = lib.getExe (writeShellScriptBin "upload-to-cdn" '''');
-          # };
+          default = import ./shell.nix { inherit pkgs asahiPackage secrets; };
         }
       );
+
+      # apps = forAllSystems (
+      #   system:
+      #   let
+      #     inherit system;
+      #     pkgs = import nixpkgs {
+      #       crossSystem.system = "aarch64-linux";
+      #       localSystem.system = system;
+      #     };
+      #     secrets = builtins.fromJSON (builtins.readFile .secrets/secrets.json);
+      #   in
+      #   {
+      #     upload = import ./upload.nix { inherit self pkgs secrets; };
+      #   }
+      # );
     };
 
   nixConfig = {
-    extra-substituters = [ "https://nixos-asahi.cachix.org" ];
+    extra-substituters = [
+      "https://nixos-asahi.cachix.org"
+      "https://nixpkgs-cross-overlay.cachix.org"
+    ];
     extra-trusted-public-keys = [
       "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
+      "nixpkgs-cross-overlay.cachix.org-1:TjKExGN4ys960TlsGqNOI/NBdoz2Jdr2ow1VybWV5JM="
     ];
   };
 }
