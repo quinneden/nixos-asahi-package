@@ -73,22 +73,28 @@
 
       templates.default = inputs.nixos-asahi-starter.templates.default;
 
-      devShells = forAllSystems (
+      apps = forAllSystems (
         system:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = import nixpkgs { inherit system; };
         in
         {
-          default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              (python3.withPackages (ps: [ ps.boto3 ]))
-              jq
-            ];
-            shellHook = ''
-              ROOT_PATH=$(git rev-parse --show-toplevel)
-              exec $ROOT_PATH/scripts/upload.sh
-            '';
-          };
+          upload = import ./upload.nix { inherit self pkgs; };
+          # let
+          #   pkgs = nixpkgs.legacyPackages.${system};
+          #   pythonWithBoto3 = inputs.nixpkgs.python3.withPackages (ps: [ ps.boto3 ]);
+          #   inherit (pkgs)
+          #     callPackage
+          #     jq
+          #     lib
+          #     self
+          #     writeShellScriptBin
+          #     ;
+          # in
+          # {
+          #   type = "app";
+          #   program = lib.getExe (writeShellScriptBin "upload-to-cdn" '''');
+          # };
         }
       );
     };
