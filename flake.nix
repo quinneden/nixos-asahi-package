@@ -22,17 +22,14 @@
       ...
     }@inputs:
     let
-      systems = [
-        "aarch64-darwin"
-        "aarch64-linux"
-      ];
+      systems = [ "aarch64-linux" ];
       forAllSystems = inputs.nixpkgs.lib.genAttrs systems;
     in
     {
       packages = forAllSystems (
         system:
         let
-          pkgs = import inputs.nixpkgs {
+          pkgs = import nixpkgs {
             crossSystem.system = "aarch64-linux";
             localSystem.system = system;
             overlays = [
@@ -42,21 +39,20 @@
           };
         in
         {
-          asahiPackage = pkgs.callPackage ./package.nix { inherit self pkgs inputs; };
+          installerPackage = pkgs.callPackage ./package.nix { inherit self pkgs inputs; };
 
-          asahiImage =
+          nixosImage =
             let
-              image-config = inputs.nixpkgs.lib.nixosSystem {
+              image-config = nixpkgs.lib.nixosSystem {
                 system = "aarch64-linux";
 
                 specialArgs = {
                   inherit inputs;
-                  modulesPath = inputs.nixpkgs + "/nixos/modules";
+                  modulesPath = nixpkgs + "/nixos/modules";
                 };
 
-                pkgs = import inputs.nixpkgs {
-                  crossSystem.system = "aarch64-linux";
-                  localSystem.system = system;
+                pkgs = import nixpkgs {
+                  inherit system;
                   # overlays = [ ];
                 };
 

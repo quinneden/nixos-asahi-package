@@ -9,7 +9,7 @@
 let
   date = builtins.readFile (pkgs.runCommand "timestamp" { } "printf `date -u +%Y-%m-%d` > $out");
 
-  asahiImage = self.packages.${system}.asahiImage;
+  nixosImage = self.packages.${system}.nixosImage;
 
   generate-package = pkgs.writeShellScript "generate-package" ''
     DATE=$(date -u +%Y-%m-%d)
@@ -19,7 +19,7 @@ let
 
     cd $out/build
 
-    cp ${asahiImage}/nixos.img ./
+    cp ${nixosImage}/nixos.img ./
 
     start_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 ./nixos.img | grep '^First sector.*' | awk -F' ' '{print $3}'`
     sectors_root=`${pkgs.gptfdisk}/bin/sgdisk --info=2 ./nixos.img | grep '^Partition size.*' | awk -F' ' '{print $3}'`
@@ -47,7 +47,7 @@ stdenv.mkDerivation rec {
   pname = "nixos-asahi-installer-package-${version}";
   src = ./.;
   nativeBuildInputs = [
-    asahiImage
+    nixosImage
     generate-package
   ];
   installPhase = ''
