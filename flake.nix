@@ -39,7 +39,7 @@
           };
         in
         {
-          installerPackage = pkgs.callPackage ./package.nix { inherit self pkgs inputs; };
+          installerPackage = pkgs.callPackage ./package.nix { inherit self pkgs; };
 
           nixosImage =
             let
