@@ -6,9 +6,9 @@ cd "$(dirname "$0")/.."
 
 RESULT=${RESULT:-"$(realpath ./result)"}
 BASEURL="https://cdn.qeden.systems"
-DATE_TAG=${DATE_TAG:-"$(cat "${RESULT}"/.release_date)"}
+DATE_TAG=${DATE_TAG:-"$(cat "${RESULT}"/timestamp)"}
 PKG="nixos-asahi-${DATE_TAG}.zip"
-ROOTSIZE=${ROOTSIZE:-"$(cat "${RESULT}"/.root_part_size)"}
+ROOTSIZE=${ROOTSIZE:-"$(cat "${RESULT}"/root_part_size)"}
 TMP=$(mktemp -d /tmp/nixos-asahi-package.XXXXXXXXXX)
 
 trap 'rm -rf ${TMP}' EXIT
@@ -37,18 +37,11 @@ else
   echo "error: ${PKG}: file not found"; exit 1
 fi
 
-# if [[ ! -d ./scripts/.venv ]]; then
-#   python3 -m venv ./scripts/.venv && source ./scripts/.venv/bin/activate
-#   python3 -m pip install boto3
-# else
-#   source ./scripts/.venv/bin/activate
-# fi
-
 echo
   confirm "Begin upload?" || exit 0
 echo
 
-# python3 scripts/main.py pkg
+python3 scripts/main.py pkg
 
 confirm "Update installer data?" || exit 0
 
