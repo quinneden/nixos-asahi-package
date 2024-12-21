@@ -3,11 +3,12 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixos-asahi-starter.url = "github:quinneden/nixos-asahi-starter";
+
     nixos-apple-silicon = {
       url = "github:tpwrules/nixos-apple-silicon";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       flake = false;
@@ -67,8 +68,6 @@
             config.system.build.image;
         }
       );
-
-      templates.default = inputs.nixos-asahi-starter.templates.default;
     };
 
   nixConfig = {
