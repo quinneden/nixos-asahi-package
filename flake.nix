@@ -1,5 +1,5 @@
 {
-  description = "Flake for nixos package for the asahi-linux installer.";
+  description = "NixOS disk image with apple silicon support and zip archive of the image for the asahi-installer.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
