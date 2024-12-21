@@ -1,66 +1,32 @@
 {
-  "os_list": [
+  "name": "",
+  "default_os_name": "NixOS",
+  "boot_object": "m1n1.bin",
+  "next_object": "m1n1/boot.bin",
+  "package": "",
+  "supported_fw": [
+    "12.3",
+    "12.3.1",
+    "13.5"
+  ],
+  "partitions": [
     {
-      "name": "NixOS Asahi Package 2024-12-03",
-      "default_os_name": "NixOS",
-      "boot_object": "m1n1.bin",
-      "next_object": "m1n1/boot.bin",
-      "package": "https://cdn.qeden.systems/os/nixos-asahi-2024-12-03.zip",
-      "supported_fw": [
-        "12.3",
-        "12.3.1",
-        "13.5"
-      ],
-      "partitions": [
-        {
-          "name": "EFI",
-          "type": "EFI",
-          "size": "500MB",
-          "format": "fat",
-          "volume_id": "0x12cea600",
-          "copy_firmware": true,
-          "copy_installer_data": true,
-          "source": "esp"
-        },
-        {
-          "name": "Root",
-          "type": "Linux",
-          "size": "6035603456B",
-          "expand": true,
-          "image": "root.img"
-        }
-      ]
+      "name": "EFI",
+      "type": "EFI",
+      "size": "500MB",
+      "format": "fat",
+      "volume_id": "0x12cea600",
+      "copy_firmware": true,
+      "copy_installer_data": true,
+      "source": "esp"
     },
     {
-      "name": "NixOS Asahi Package 2024-12-05",
-      "default_os_name": "NixOS",
-      "boot_object": "m1n1.bin",
-      "next_object": "m1n1/boot.bin",
-      "package": "https://cdn.qeden.systems/os/nixos-asahi-2024-12-05.zip",
-      "supported_fw": [
-        "12.3",
-        "12.3.1",
-        "13.5"
-      ],
-      "partitions": [
-        {
-          "name": "EFI",
-          "type": "EFI",
-          "size": "500MB",
-          "format": "fat",
-          "volume_id": "0x12cea600",
-          "copy_firmware": true,
-          "copy_installer_data": true,
-          "source": "esp"
-        },
-        {
-          "name": "Root",
-          "type": "Linux",
-          "size": "6593445888B",
-          "expand": true,
-          "image": "root.img"
-        }
-      ]
+      "name": "Root",
+      "type": "Linux",
+      "size": "",
+      "expand": true,
+      "image": "root.img"
     }
   ]
 }
+

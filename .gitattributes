@@ -1,1 +1,1 @@
-**/scripts/secrets.sh filter=git-crypt diff=git-crypt
+**/secrets.json filter=git-crypt diff=git-crypt

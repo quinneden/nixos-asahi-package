@@ -68,6 +68,41 @@
             config.system.build.image;
         }
       );
+      devShells.aarch64-darwin =
+        let
+          pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+          secrets = builtins.fromJSON (builtins.readFile ./secrets.json);
+          inherit (pkgs) mkShell;
+        in
+        {
+          default = mkShell {
+            packages = with pkgs; [ (python3.withPackages (ps: [ ps.boto3 ])) ];
+            shellHook = ''
+              ACCESS_KEY_ID="${secrets.accessKeyId}"; export ACCESS_KEY_ID
+              ACCOUNT_ID="${secrets.accountId}"; export ACCOUNT_ID
+              BUCKET_NAME="${secrets.bucketName}"; export BUCKET_NAME
+              ENDPOINT_URL="https://$ACCOUNT_ID.r2.cloudflarestorage.com"; export ENDPOINT_URL
+              SECRET_ACCESS_KEY="${secrets.secretAccessKey}"; export SECRET_ACCESS_KEY
+
+              confirm() {
+                while true; do
+                  read -r -n 1 -p "Begin upload? [y/n]: " REPLY
+                  case $REPLY in
+                    [yY]) echo ; return 0 ;;
+                    [nN]) echo ; return 1 ;;
+                    *) echo ;;
+                  esac
+                done
+              }
+
+              if confirm; then
+                ./scripts/upload.sh
+              fi
+
+              exit
+            '';
+          };
+        };
     };
 
   nixConfig = {

@@ -7,6 +7,14 @@
 let
   timestamp = builtins.readFile (pkgs.runCommand "timestamp" { } "printf `date -u +%Y-%m-%d` > $out");
 
+  substDataJSON = pkgs.writeShellScriptBin "write-installer-data" ''
+    rootSize="$(cat $out/root_part_size)B"
+    jq -r < ${./data/installer_data.json} \
+      ".package = \"https://cdn.qeden.systems/os/nixos-asahi-${timestamp}.zip\" |
+      .partitions.[1].size = \"$rootSize\" |
+      .name = \"NixOS (${timestamp})\""
+  '';
+
   inherit (self.packages.aarch64-linux) nixosImage;
 in
 stdenv.mkDerivation rec {
@@ -16,10 +24,11 @@ stdenv.mkDerivation rec {
   src = nixosImage;
 
   nativeBuildInputs = with pkgs; [
+    coreutils
     gptfdisk
+    jq
     p7zip
     zip
-    coreutils
   ];
 
   buildPhase = ''
@@ -38,7 +47,7 @@ stdenv.mkDerivation rec {
 
     zip -r $out/${pname}-${timestamp}.zip esp root.img
 
-    # rm -rf ESP.img nixos.img root.img esp
+    ${substDataJSON}/bin/write-installer-data > $out/${pname}-${timestamp}.json
 
     runHook postBuild
   '';

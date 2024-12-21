@@ -37,41 +37,7 @@
         "type": "github"
       }
     },
-    "nixos-asahi-starter": {
-      "inputs": {
-        "nixpkgs": "nixpkgs"
-      },
-      "locked": {
-        "lastModified": 1729523780,
-        "narHash": "sha256-4lJLhPf2ceU1RKiCK3bZ9v5ofLXFgtRFiVjAYuvf8hE=",
-        "owner": "quinneden",
-        "repo": "nixos-asahi-starter",
-        "rev": "ed3d789f2bb972d4a3313f483d4a7991a9f1782f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "quinneden",
-        "repo": "nixos-asahi-starter",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
-      "locked": {
-        "lastModified": 1729256560,
-        "narHash": "sha256-/uilDXvCIEs3C9l73JTACm4quuHUsIHcns1c+cHUJwA=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "4c2fcb090b1f3e5b47eaa7bd33913b574a11e0a0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_2": {
       "locked": {
         "lastModified": 1734424634,
         "narHash": "sha256-cHar1vqHOOyC7f1+tVycPoWTfKIaqkoe1Q6TnKzuti4=",
@@ -90,8 +56,7 @@
     "root": {
       "inputs": {
         "nixos-apple-silicon": "nixos-apple-silicon",
-        "nixos-asahi-starter": "nixos-asahi-starter",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": "nixpkgs",
         "rust-overlay": "rust-overlay_2"
       }
     },
@@ -114,11 +79,11 @@
     "rust-overlay_2": {
       "flake": false,
       "locked": {
-        "lastModified": 1734661750,
-        "narHash": "sha256-BI58NBdimxu1lnpOrG9XxBz7Cwqy+qIf99zunWofX5w=",
+        "lastModified": 1734747996,
+        "narHash": "sha256-0DUuObdcPITVOMMymq2y6YlM++QEWXZO3cTm6RGYgL8=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "7d3d910d5fd575e6e8c5600d83d54e5c47273bfe",
+        "rev": "f9086701f5f3d36b8e5f4a3b9c93579ebc2581e6",
         "type": "github"
       },
       "original": {
