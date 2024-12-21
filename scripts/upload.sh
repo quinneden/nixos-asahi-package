@@ -2,59 +2,35 @@
 
 set -e
 
-cd "$(dirname "$0")/.."
+result=$(readlink ./result)
+dateTag=$(cat $result/timestamp)
 
-RESULT=${RESULT:-"$(realpath ./result)"}
-BASEURL="https://cdn.qeden.systems"
-DATE_TAG=${DATE_TAG:-"$(cat "${RESULT}"/timestamp)"}
-PKG="nixos-asahi-${DATE_TAG}.zip"
-ROOTSIZE=${ROOTSIZE:-"$(cat "${RESULT}"/root_part_size)"}
-TMP=$(mktemp -d /tmp/nixos-asahi-package.XXXXXXXXXX)
+pkgZip="nixos-asahi-${dateTag}.zip"; export pkgZip
+pkgData="nixos-asahi-${dateTag}.json"; export pkgData
 
-trap 'rm -rf ${TMP}' EXIT
+trap 'rm -rf $TMPDIR' EXIT
 
-export RESULT BASEURL DATE_TAG PKG ROOTSIZE TMP
+cp $result/nixos-asahi-* $TMPDIR
+chmod 644 $TMPDIR/nixos-asahi-*
 
-source scripts/secrets.sh
-
-confirm() {
-  if ${CONFIRM:-true}; then
-    while true; do
-      read -r -n 1 -p "$1 [y/n]: " REPLY
-      case $REPLY in
-        [yY]) echo ; return 0 ;;
-        [nN]) echo ; return 1 ;;
-        *) echo ;;
-      esac
-    done
-  fi
-}
-
-if [[ -e ${RESULT}/${PKG} ]]; then
-  cp -a "${RESULT}/${PKG}" "${TMP}"
-  chmod 644 "${TMP}/${PKG}"
-else
-  echo "error: ${PKG}: file not found"; exit 1
-fi
-
-echo
-  confirm "Begin upload?" || exit 0
-echo
-
+echo "Uploading package..."
 python3 scripts/main.py pkg
 
-confirm "Update installer data?" || exit 0
-
-cp data/installer_data.json "$TMP"/old_installer_data.json
-
-if [[ $(jq -r '.os_list | last | .package' data/installer_data.json) != "$BASEURL/os/$PKG" ]]; then
-  jq -r < ./data/template/installer_data.json \
-    ".[].[].package = \"${BASEURL}/os/${PKG}\" | .[].[].partitions.[1].size = \"${ROOTSIZE}B\" | .[].[].name = \"NixOS Asahi Package ${DATE_TAG}\"" \
-    > "$TMP/new_installer_data.json"
-
-  jq '.os_list += (input | .os_list)' "$TMP"/old_installer_data.json "$TMP"/new_installer_data.json > data/installer_data.json
-fi
-
+echo "Uploading installer data..."
 python3 scripts/main.py data
 
-unset RESULT BASEURL DATE_TAG PKG ROOTSIZE TMP
+json_files=($(python3 scripts/list_obj.py))
+
+[[ -n ${json_files[@]} ]] || exit 0
+
+mkdir -p $TMPDIR/data
+cd $TMPDIR/data
+
+for f in ${json_files[@]}; do
+  curl -LO "https://cdn.qeden.systems/$f"
+done
+
+jq -s '{os_list: .}' ${json_files[@]#os/} > installer_data.json
+
+cd -
+python3 scripts/main.py data_joined
