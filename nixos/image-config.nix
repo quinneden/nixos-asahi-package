@@ -83,8 +83,9 @@
     import "${toString modulesPath} + /../lib/make-disk-image.nix" {
       inherit lib config pkgs;
       partitionTableType = "efi";
+      configFile = "${./configuration.nix}";
       fsType = "ext4";
-      memSize = 6144;
+      memSize = 8192;
       name = "nixos-asahi-image";
       format = "raw";
     }
@@ -116,17 +117,20 @@
     git
   ];
 
+  services = {
+    getty.autologinUser = "nixos";
+    openssh.enable = true;
+  };
+
   users.mutableUsers = true;
 
-  # users.users.nixos = {
-  #   isNormalUser = true;
-  #   initialHashedPassword = "";
-  #   extraGroups = [ "wheel" ];
-  # };
-
-  users.users.root.initialHashedPassword = "";
+  users.users.nixos = {
+    isNormalUser = true;
+    initialHashedPassword = "";
+    extraGroups = [ "wheel" ];
+  };
 
   security.sudo.wheelNeedsPassword = false;
 
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.05";
 }

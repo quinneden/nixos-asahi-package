@@ -59,7 +59,7 @@
 
                 modules = [
                   nixos-apple-silicon.nixosModules.default
-                  ./nixos
+                  ./nixos/image-config.nix
                 ];
               };
 
@@ -68,6 +68,25 @@
             config.system.build.image;
         }
       );
+
+      nixosConfigurations.nixos = nixpkgs.lib.nixosSystem rec {
+        system = "aarch64-linux";
+
+        specialArgs = {
+          inherit inputs;
+          modulesPath = nixpkgs + "/nixos/modules";
+        };
+
+        pkgs = import nixpkgs {
+          inherit system;
+        };
+
+        modules = [
+          nixos-apple-silicon.nixosModules.default
+          ./nixos/configuration.nix
+        ];
+      };
+
       devShells.aarch64-darwin =
         let
           pkgs = nixpkgs.legacyPackages.aarch64-darwin;
