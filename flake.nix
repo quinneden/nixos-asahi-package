@@ -23,11 +23,16 @@
       ...
     }@inputs:
     let
-      systems = [ "aarch64-linux" ];
-      forAllSystems = inputs.nixpkgs.lib.genAttrs systems;
+      systems = [
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
+      forEachSystem = inputs.nixpkgs.lib.genAttrs systems;
+
+      secrets = builtins.fromJSON (builtins.readFile ./secrets.json);
     in
     {
-      packages = forAllSystems (
+      packages = forEachSystem (
         system:
         let
           pkgs = import nixpkgs {
@@ -46,15 +51,11 @@
             let
               image-config = nixpkgs.lib.nixosSystem {
                 system = "aarch64-linux";
+                pkgs = import nixpkgs { inherit system; };
 
                 specialArgs = {
                   inherit inputs;
                   modulesPath = nixpkgs + "/nixos/modules";
-                };
-
-                pkgs = import nixpkgs {
-                  inherit system;
-                  # overlays = [ ];
                 };
 
                 modules = [
@@ -65,7 +66,14 @@
 
               config = image-config.config;
             in
-            config.system.build.image;
+            config.system.build.image.override {
+              partitionTableType = "efi";
+              configFile = "${./nixos/configuration.nix}";
+              fsType = "ext4";
+              memSize = 4096;
+              name = "nixos-asahi";
+              format = "raw";
+            };
         }
       );
 
@@ -87,15 +95,49 @@
         ];
       };
 
+      apps = forEachSystem (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          inherit (pkgs) lib writeShellApplication;
+        in
+        with lib;
+        rec {
+          default = upload;
+
+          upload = {
+            type = "app";
+            program = getExe (writeShellApplication {
+              name = "upload";
+              runtimeInputs = with pkgs; [ (python3.withPackages (ps: [ ps.boto3 ])) ];
+              text = ''
+                ACCESS_KEY_ID="${secrets.accessKeyId}"; export ACCESS_KEY_ID
+                ACCOUNT_ID="${secrets.accountId}"; export ACCOUNT_ID
+                BUCKET_NAME="${secrets.bucketName}"; export BUCKET_NAME
+                ENDPOINT_URL="https://$ACCOUNT_ID.r2.cloudflarestorage.com"; export ENDPOINT_URL
+                SECRET_ACCESS_KEY="${secrets.secretAccessKey}"; export SECRET_ACCESS_KEY
+
+                echo 'Press enter to continue...'
+                read -r
+                exec ${./scripts/upload.sh}
+              '';
+            });
+          };
+        }
+      );
+
       devShells.aarch64-darwin =
         let
           pkgs = nixpkgs.legacyPackages.aarch64-darwin;
-          secrets = builtins.fromJSON (builtins.readFile ./secrets.json);
           inherit (pkgs) mkShell;
         in
         {
           default = mkShell {
-            packages = with pkgs; [ (python3.withPackages (ps: [ ps.boto3 ])) ];
+            name = "boto3";
+            packages = with pkgs; [
+              (python3.withPackages (ps: [ ps.boto3 ]))
+            ];
+
             shellHook = ''
               ACCESS_KEY_ID="${secrets.accessKeyId}"; export ACCESS_KEY_ID
               ACCOUNT_ID="${secrets.accountId}"; export ACCOUNT_ID
@@ -103,21 +145,7 @@
               ENDPOINT_URL="https://$ACCOUNT_ID.r2.cloudflarestorage.com"; export ENDPOINT_URL
               SECRET_ACCESS_KEY="${secrets.secretAccessKey}"; export SECRET_ACCESS_KEY
 
-              confirm() {
-                while true; do
-                  read -r -n 1 -p "Begin upload? [y/n]: " REPLY
-                  case $REPLY in
-                    [yY]) echo ; return 0 ;;
-                    [nN]) echo ; return 1 ;;
-                    *) echo ;;
-                  esac
-                done
-              }
-
-              if confirm; then
-                ./scripts/upload.sh
-              fi
-
+              exec zsh
               exit
             '';
           };

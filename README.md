@@ -15,12 +15,10 @@ Build disk image and package for asahi-installer.
 nix build .#packages.aarch64-linux.installerPackage
 ```
 
-## Credit
+## Credits
 
 This project utilizes modules/packages from [tpwrules/nixos-apple-silicon](https://github.com/tpwrules/nixos-apple-silicon),
 which in turn is based on the incredible work done by the [Asahi Linux](https://github.com/asahilinux) team.
-
-The disk image configuration is based on [nixos-generators](https://github.com/nix-community/nixos-generators).
 
 ## License
 

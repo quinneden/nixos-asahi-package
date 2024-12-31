@@ -1,13 +1,15 @@
 {
-  modulesPath,
   config,
-  pkgs,
   lib,
+  modulesPath,
+  inputs,
+  pkgs,
   ...
 }:
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
+    (inputs.nixpkgs + "/nixos/lib/make-disk-image.nix")
   ];
 
   boot = {
@@ -16,23 +18,30 @@
       "usb_storage"
       "usbhid"
     ];
+
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = false;
   };
 
   boot.postBootCommands =
     let
-      inherit (pkgs) asahi-fwextract;
+      inherit (pkgs)
+        asahi-fwextract
+        util-linux
+        gawk
+        parted
+        e2fsprogs
+        cpio
+        ;
       expandOnBoot = ''
-        # Figure out device names for the boot device and root filesystem.
-        rootPart=$(${pkgs.util-linux}/bin/findmnt -n -o SOURCE /)
+        rootPart=$(${util-linux}/bin/findmnt -n -o SOURCE /)
         bootDevice=$(lsblk -npo PKNAME $rootPart)
         partNum=$(lsblk -npo MAJ:MIN $rootPart | ${pkgs.gawk}/bin/awk -F: '{print $2}')
 
         # Resize the root partition and the filesystem to fit the disk
         echo ",+," | sfdisk -N$partNum --no-reread $bootDevice
-        ${pkgs.parted}/bin/partprobe
-        ${pkgs.e2fsprogs}/bin/resize2fs $rootPart
+        ${parted}/bin/partprobe
+        ${e2fsprogs}/bin/resize2fs $rootPart
       '';
     in
     ''
@@ -44,7 +53,7 @@
       umount /tmp/.fwsetup/esp
 
       pushd /tmp/.fwsetup/
-      cat /tmp/.fwsetup/extracted/firmware.cpio | ${pkgs.cpio}/bin/cpio -id --quiet --no-absolute-filenames
+      cat /tmp/.fwsetup/extracted/firmware.cpio | ${cpio}/bin/cpio -id --quiet --no-absolute-filenames
       mkdir -p /lib/firmware
       mv vendorfw/* /lib/firmware
       popd
@@ -78,18 +87,6 @@
       "dmask=0022"
     ];
   };
-
-  system.build.image = (
-    import "${toString modulesPath} + /../lib/make-disk-image.nix" {
-      inherit lib config pkgs;
-      partitionTableType = "efi";
-      configFile = "${./configuration.nix}";
-      fsType = "ext4";
-      memSize = 8192;
-      name = "nixos-asahi-image";
-      format = "raw";
-    }
-  );
 
   zramSwap = {
     enable = true;

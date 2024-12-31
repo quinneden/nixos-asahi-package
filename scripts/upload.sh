@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 
-set -e
+set -xeu -o pipefail
+
+tmpDir=$(mktemp -dp /tmp -t upload-package)
 
 result=$(readlink ./result)
-dateTag=$(cat $result/timestamp)
+dateTag=$(cat "$result"/timestamp)
 
-pkgZip="nixos-asahi-${dateTag}.zip"; export pkgZip
-pkgData="nixos-asahi-${dateTag}.json"; export pkgData
+pkgZip="nixos-asahi-$dateTag.zip"; export pkgZip
+pkgData="nixos-asahi-$dateTag.json"; export pkgData
 
-trap 'rm -rf $TMPDIR' EXIT
+trap 'rm -rf $tmpDir' EXIT
 
-cp $result/nixos-asahi-* $TMPDIR
-chmod 644 $TMPDIR/nixos-asahi-*
+cp "$result"/{"$pkgZip","$pkgData"} "$tmpDir"
+chmod 644 "$tmpDir"/*
 
 echo "Uploading package..."
 python3 scripts/main.py pkg
@@ -23,14 +25,14 @@ json_files=($(python3 scripts/list_obj.py))
 
 [[ -n ${json_files[@]} ]] || exit 0
 
-mkdir -p $TMPDIR/data
-cd $TMPDIR/data
+mkdir -p "$tmpDir"/data
+cd "$tmpDir"/data
 
-for f in ${json_files[@]}; do
+for f in "${json_files[@]}"; do
   curl -LO "https://cdn.qeden.systems/$f"
 done
 
-jq -s '{os_list: .}' ${json_files[@]#os/} > installer_data.json
+jq -s '{os_list: .}' "${json_files[@]#os/}" > installer_data.json
 
 cd -
 python3 scripts/main.py data_joined

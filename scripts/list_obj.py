@@ -3,6 +3,7 @@ import re
 import os
 
 access_key_id = os.environ["ACCESS_KEY_ID"]
+account_id = os.environ["ACCOUNT_ID"]
 secret_access_key = os.environ["SECRET_ACCESS_KEY"]
 
 session = boto3.Session(
@@ -12,7 +13,7 @@ session = boto3.Session(
 
 s3 = session.resource(
     "s3",
-    endpoint_url="https://fb446c3eff8c78b8982e070223d32048.r2.cloudflarestorage.com",
+    endpoint_url=f"https://{account_id}.r2.cloudflarestorage.com",
     region_name="auto",
 )
 
