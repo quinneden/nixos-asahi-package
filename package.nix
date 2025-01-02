@@ -8,8 +8,9 @@
 with lib;
 let
   inherit (self.packages.aarch64-linux) nixosImage;
+  inherit (builtins) readFile;
 
-  timestamp = builtins.readFile (pkgs.runCommand "timestamp" { } "printf `date -u +%Y-%m-%d` > $out");
+  timestamp = readFile (pkgs.runCommand "timestamp" { } "printf `date -u +%Y-%m-%d` > $out");
 
   substDataJSON = pkgs.writeShellScriptBin "write-installer-data" ''
     rootSize="$(cat $out/root_part_size)B"
@@ -30,17 +31,15 @@ stdenv.mkDerivation rec {
     gptfdisk
     jq
     p7zip
-    zip
+    # zip
   ];
 
   buildPhase = ''
     runHook preBuild
     mkdir -p $out
 
-    7z x $src/nixos.img
+    7z x $src/nixos-asahi.img
     7z x ESP.img -o'esp'
-
-    mv primary.img root.img
 
     rm -rf esp/EFI/nixos/.extra-files
 
