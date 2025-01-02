@@ -21,9 +21,10 @@ python3 scripts/main.py pkg
 echo "Uploading installer data..."
 python3 scripts/main.py data
 
-json_files=($(python3 scripts/list_obj.py))
+read -ra json_files < <(python3 scripts/list_obj.py)
 
-[[ -n ${json_files[@]} ]] || exit 0
+# shellcheck disable=SC2128
+[[ -n $json_files ]] || exit 0
 
 mkdir -p "$tmpDir"/data
 cd "$tmpDir"/data

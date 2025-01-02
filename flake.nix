@@ -23,18 +23,27 @@
         "aarch64-linux"
         "aarch64-darwin"
       ];
+
       forEachSystem = inputs.nixpkgs.lib.genAttrs systems;
 
       secrets = builtins.fromJSON (builtins.readFile ./secrets.json);
     in
     {
-      packages.aarch64-linux =
+      packages = forEachSystem (
+        system:
         let
-          system = "aarch64-linux";
-          pkgs = import nixpkgs {
+          pkgsCross = import nixpkgs {
+            crossSystem.system = "aarch64-linux";
+            localSystem.system = system;
+            overlays = [ nixos-apple-silicon.overlays.default ];
+          };
+
+          pkgsHost = import nixpkgs {
             inherit system;
             overlays = [ nixos-apple-silicon.overlays.default ];
           };
+
+          pkgs = if system == "x64-linux" then pkgsCross else pkgsHost;
         in
         {
           installerPackage = pkgs.callPackage ./package.nix { inherit self pkgs; };
@@ -42,10 +51,11 @@
           nixosImage =
             let
               image-config = nixpkgs.lib.nixosSystem {
-                pkgs = import nixpkgs { inherit system; };
+                inherit system;
+
+                pkgs = if system == "x86_64-linux" then pkgsCross else pkgsHost;
 
                 specialArgs = {
-                  inherit inputs;
                   modulesPath = nixpkgs + "/nixos/modules";
                 };
 
@@ -58,7 +68,8 @@
               config = image-config.config;
             in
             config.system.build.image;
-        };
+        }
+      );
 
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem rec {
         system = "aarch64-linux";
@@ -75,30 +86,14 @@
       apps = forEachSystem (
         system:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
-          inherit (pkgs) lib writeShellApplication;
+          pkgs = import nixpkgs { inherit system; };
         in
-        with lib;
         rec {
           default = upload;
 
           upload = {
             type = "app";
-            program = getExe (writeShellApplication {
-              name = "upload";
-              runtimeInputs = with pkgs; [ (python3.withPackages (ps: [ ps.boto3 ])) ];
-              text = ''
-                ACCESS_KEY_ID="${secrets.accessKeyId}"; export ACCESS_KEY_ID
-                ACCOUNT_ID="${secrets.accountId}"; export ACCOUNT_ID
-                BUCKET_NAME="${secrets.bucketName}"; export BUCKET_NAME
-                ENDPOINT_URL="https://$ACCOUNT_ID.r2.cloudflarestorage.com"; export ENDPOINT_URL
-                SECRET_ACCESS_KEY="${secrets.secretAccessKey}"; export SECRET_ACCESS_KEY
-
-                echo 'Press enter to continue...'
-                read -r
-                exec ${./scripts/upload.sh}
-              '';
-            });
+            program = import ./app.nix { inherit pkgs secrets self; };
           };
         }
       );
@@ -106,7 +101,7 @@
       devShells = forEachSystem (
         system:
         let
-          pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+          pkgs = import nixpkgs { inherit system; };
           inherit (pkgs) mkShell;
         in
         {

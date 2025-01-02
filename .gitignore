@@ -1,4 +1,4 @@
 .DS_Store
 result
-**/venv
-scripts/run-vm.sh
+**/*.img
+**/*.zip
