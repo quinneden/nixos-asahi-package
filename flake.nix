@@ -9,11 +9,6 @@
       url = "github:tpwrules/nixos-apple-silicon";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      flake = false;
-    };
   };
 
   outputs =
@@ -33,16 +28,12 @@
       secrets = builtins.fromJSON (builtins.readFile ./secrets.json);
     in
     {
-      packages = forEachSystem (
-        system:
+      packages.aarch64-linux =
         let
+          system = "aarch64-linux";
           pkgs = import nixpkgs {
-            crossSystem.system = "aarch64-linux";
-            localSystem.system = system;
-            overlays = [
-              nixos-apple-silicon.overlays.default
-              (import inputs.rust-overlay)
-            ];
+            inherit system;
+            overlays = [ nixos-apple-silicon.overlays.default ];
           };
         in
         {
@@ -51,7 +42,6 @@
           nixosImage =
             let
               image-config = nixpkgs.lib.nixosSystem {
-                system = "aarch64-linux";
                 pkgs = import nixpkgs { inherit system; };
 
                 specialArgs = {
@@ -68,8 +58,7 @@
               config = image-config.config;
             in
             config.system.build.image;
-        }
-      );
+        };
 
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem rec {
         system = "aarch64-linux";

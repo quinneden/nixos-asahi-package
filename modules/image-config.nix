@@ -38,18 +38,22 @@
         util-linux
         gawk
         parted
-        e2fsprogs
+        btrfs-progs
         cpio
         ;
-      expandOnBoot = ''
-        rootPart=$(${util-linux}/bin/findmnt -n -o SOURCE /)
-        bootDevice=$(lsblk -npo PKNAME $rootPart)
-        partNum=$(lsblk -npo MAJ:MIN $rootPart | ${pkgs.gawk}/bin/awk -F: '{print $2}')
 
-        # Resize the root partition and the filesystem to fit the disk
-        echo ",+," | sfdisk -N$partNum --no-reread $bootDevice
-        ${parted}/bin/partprobe
-        ${e2fsprogs}/bin/resize2fs $rootPart
+      expandOnFirstBoot = ''
+        if [[ ! -f /nix/var/nix/profiles/default/system ]]; then
+          # Figure out device names for the boot device and root filesystem.
+          rootPart=$(${util-linux}/bin/findmnt -nvo SOURCE /)
+          firmwareDevice=$(lsblk -npo PKNAME $rootPart)
+          partNum=$(lsblk -npo MAJ:MIN "$rootPart" | ${gawk}/bin/awk -F: '{print $2}' | tr -d '[:space:]')
+
+          # Resize the root partition and the filesystem to fit the disk
+          echo ',+,' | sfdisk -N"$partNum" --no-reread "$firmwareDevice"
+          ${parted}/bin/partprobe
+          ${btrfs-progs}/bin/btrfs filesystem resize max /
+        fi
       '';
     in
     ''
@@ -67,14 +71,12 @@
       popd
       rm -rf /tmp/.fwsetup
 
-      if [[ ! -f /nix/var/nix/profiles/default/system ]]; then
-        ${expandOnBoot}
-      fi
+      ${expandOnFirstBoot}
     '';
 
   hardware.asahi = {
     extractPeripheralFirmware = false;
-    experimentalGPUInstallMode = "replace";
+    experimentalGPUInstallMode = "overlay";
     useExperimentalGPUDriver = true;
     setupAsahiSound = true;
     withRust = true;
