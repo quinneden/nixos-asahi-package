@@ -2,15 +2,23 @@
   config,
   lib,
   modulesPath,
-  inputs,
   pkgs,
   ...
 }:
 {
-  imports = [
-    (modulesPath + "/installer/scan/not-detected.nix")
-    (inputs.nixpkgs + "/nixos/lib/make-disk-image.nix")
-  ];
+  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+
+  system.build.image = (
+    import ./make-disk-image.nix {
+      inherit lib config pkgs;
+      configFile = "${../nixos/configuration.nix}";
+      convertToBtrfs = true;
+      format = "raw";
+      memSize = 4096;
+      name = "nixos-asahi-image";
+      partitionTableType = "efi";
+    }
+  );
 
   boot = {
     initrd.availableKernelModules = [
@@ -75,12 +83,12 @@
   documentation.enable = false;
 
   fileSystems."/" = {
-    device = lib.mkForce "/dev/disk/by-uuid/f222513b-ded1-49fa-b591-20ce86a2fe7f";
-    fsType = "ext4";
+    device = lib.mkForce "/dev/disk/by-label/nixos";
+    fsType = "btrfs";
   };
 
   fileSystems."/boot" = {
-    device = lib.mkForce "/dev/disk/by-uuid/12CE-A600";
+    device = lib.mkForce "/dev/disk/by-label/EFI";
     fsType = "vfat";
     options = [
       "fmask=0022"
