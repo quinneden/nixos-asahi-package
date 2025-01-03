@@ -87,10 +87,14 @@
   fileSystems."/" = {
     device = lib.mkForce "/dev/disk/by-label/nixos";
     fsType = "btrfs";
+    options = [
+      "compress=zstd"
+      "subvol=@root"
+    ];
   };
 
   fileSystems."/boot" = {
-    device = lib.mkForce "/dev/disk/by-label/EFI";
+    device = lib.mkForce "/dev/disk/by-label/ESP";
     fsType = "vfat";
     options = [
       "fmask=0022"
