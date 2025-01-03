@@ -1,0 +1,32 @@
+name: Build installer package
+
+on:
+  push:
+    tags:
+      - "v?[0-9]+.[0-9]+.[0-9]+*"
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+      contents: "read"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decrypt Secrets
+        run: base64 -d <<< ${{ secrets.GIT_CRYPT_KEY }} | git-crypt unlock -
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+          with:
+            github-token: '${{ github.token }}'
+            extra-conf: "extra-platforms = aarch64-linux"
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+        with:
+          use-flakehub: false
+          diagnostic-endpoint: ""
+      - name: Build package
+        run: nix build -L .#packages.aarch64-linux.installerPackage

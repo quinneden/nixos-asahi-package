@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    forkpkgs.url = "git+file:///Users/quinn/repos/forks/nixpkgs";
 
     nixos-apple-silicon = {
       url = "github:tpwrules/nixos-apple-silicon";
@@ -29,21 +28,13 @@
       secrets = builtins.fromJSON (builtins.readFile ./secrets.json);
     in
     {
-      packages = forEachSystem (
-        system:
+      packages.aarch64-linux =
         let
-          pkgsCross = import nixpkgs {
-            crossSystem.system = "aarch64-linux";
-            localSystem.system = system;
-            overlays = [ nixos-apple-silicon.overlays.default ];
-          };
-
-          pkgsHost = import nixpkgs {
+          system = "aarch64-linux";
+          pkgs = import nixpkgs {
             inherit system;
             overlays = [ nixos-apple-silicon.overlays.default ];
           };
-
-          pkgs = if system == "x64-linux" then pkgsCross else pkgsHost;
         in
         {
           installerPackage = pkgs.callPackage ./package.nix { inherit self pkgs; };
@@ -53,7 +44,7 @@
               image-config = nixpkgs.lib.nixosSystem {
                 inherit system;
 
-                pkgs = if system == "x86_64-linux" then pkgsCross else pkgsHost;
+                pkgs = import nixpkgs { inherit system; };
 
                 specialArgs = {
                   modulesPath = nixpkgs + "/nixos/modules";
@@ -68,20 +59,7 @@
               config = image-config.config;
             in
             config.system.build.image;
-        }
-      );
-
-      nixosConfigurations.nixos = nixpkgs.lib.nixosSystem rec {
-        system = "aarch64-linux";
-        pkgs = import nixpkgs { inherit system; };
-
-        specialArgs = {
-          inherit inputs;
-          modulesPath = nixpkgs + "/nixos/modules";
         };
-
-        modules = [ ./nixos/configuration.nix ];
-      };
 
       apps = forEachSystem (
         system:
