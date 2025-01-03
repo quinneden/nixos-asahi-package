@@ -17,7 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Decrypt Secrets
-        run: base64 -d <<< ${{ secrets.GIT_CRYPT_KEY }} | git-crypt unlock -
+        run: |
+          sudo apt-get update && sudo apt-get install -y git-crypt
+          base64 -d <<< ${{ secrets.GIT_CRYPT_KEY }} | git-crypt unlock -
       - uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
