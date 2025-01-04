@@ -28,7 +28,8 @@
       secrets = builtins.fromJSON (builtins.readFile ./secrets.json);
     in
     {
-      packages.aarch64-linux =
+      packages = forEachSystem (
+        system:
         let
           system = "aarch64-linux";
           pkgs = import nixpkgs {
@@ -59,7 +60,8 @@
               config = image-config.config;
             in
             config.system.build.image;
-        };
+        }
+      );
 
       apps = forEachSystem (
         system:
