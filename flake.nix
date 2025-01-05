@@ -85,7 +85,7 @@
           inherit (pkgs) mkShell;
         in
         {
-          default = mkShell {
+          pythonBoto3 = mkShell {
             name = "boto3";
 
             packages = with pkgs; [
@@ -104,6 +104,22 @@
               exit
             '';
           };
+
+          gitCrypt =
+            let
+              decryptSecrets = pkgs.writeShellScriptBin "decrypt" ''
+                [[ $# -gt 0 ]] || exit 1
+                base64 -d <<< "$1" | git-crypt unlock -
+              '';
+            in
+            mkShell {
+              name = "git-crypt";
+
+              packages = with pkgs; [
+                decryptSecrets
+                git-crypt
+              ];
+            };
         }
       );
     };

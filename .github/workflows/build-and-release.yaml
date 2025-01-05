@@ -17,17 +17,17 @@ jobs:
       contents: "read"
     steps:
       - uses: actions/checkout@v4
-      - name: Decrypt Secrets
-        run: |
-          sudo apt-get update && sudo apt-get install -y git-crypt
-          base64 -d <<< ${{ secrets.GIT_CRYPT_KEY }} | git-crypt unlock -
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
         with:
-          github-token: '${{ github.token }}'
+          ref: github-action
+      - name: Decrypt Secrets
+        run: nix develop .#gitCrypt --command decrypt ${{ secrets.GIT_CRYPT_KEY }}
+      # - name: Install Nix
+      #   uses: DeterminateSystems/nix-installer-action@main
+      #   with:
+      #     github-token: ${{ github.token }}
       - uses: DeterminateSystems/magic-nix-cache-action@main
         with:
           use-flakehub: false
           diagnostic-endpoint: ""
       - name: Build package
-        run: nix build -L .#packages.aarch64-linux.installerPackage
+        run: nix build -L .#installerPackage
