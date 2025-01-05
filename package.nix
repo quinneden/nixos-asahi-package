@@ -45,7 +45,6 @@ stdenv.mkDerivation rec {
 
     stat --printf '%s' root.img > $out/data/root_part_size
     printf '${pkgVersion}' > $out/data/version_tag
-    printf '${toString builtins.currentTime}' > $out/data/epoch
 
     zip -r $out/${pname}-${pkgVersion}.zip esp root.img
 
