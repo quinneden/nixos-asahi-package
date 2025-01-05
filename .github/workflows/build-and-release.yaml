@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       id-token: "write"
       contents: "read"
@@ -20,14 +20,10 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y git-crypt
           base64 -d <<< ${{ secrets.GIT_CRYPT_KEY }} | git-crypt unlock -
-      - uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
         with:
           github-token: '${{ github.token }}'
-          extra-conf: "extra-platforms = aarch64-linux"
       - uses: DeterminateSystems/magic-nix-cache-action@main
         with:
           use-flakehub: false

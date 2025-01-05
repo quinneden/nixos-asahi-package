@@ -16,7 +16,7 @@ let
     rootSize="$(cat $out/data/root_part_size)B"
     jq -r ".package = \"https://cdn.qeden.systems/os/nixos-asahi-${pkgVersion}.zip\"
       | .partitions.[1].size = \"$rootSize\"
-      | .name = \"NixOS ${version}\"" \
+      | .name = \"NixOS ${version} (nixos-asahi-${pkgVersion})\"" \
       < ${./data/installer_data.json}
   '';
 in
@@ -38,17 +38,18 @@ stdenv.mkDerivation rec {
     runHook preBuild
     mkdir -p $out/data
 
-    7z x $src/nixos-asahi.img
+    7z x $src/nixos-asahi.img 
     7z x ESP.img -o'esp'
 
     rm -rf esp/EFI/nixos/.extra-files
 
     stat --printf '%s' root.img > $out/data/root_part_size
-    printf "${version}" > $out/data/version_tag
+    printf '${pkgVersion}' > $out/data/version_tag
+    printf '${toString builtins.currentTime}' > $out/data/epoch
 
-    zip -r $out/${pname}-${version}.zip esp root.img
+    zip -r $out/${pname}-${pkgVersion}.zip esp root.img
 
-    ${writeInstallerData} > $out/data/${pname}-${version}.json
+    ${writeInstallerData} > $out/data/${pname}-${pkgVersion}.json
     runHook postBuild
   '';
 }
