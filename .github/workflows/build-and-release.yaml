@@ -10,7 +10,8 @@ on:
 
 jobs:
   build-and-release:
-    runs-on: self-hosted
+    runs-on:
+      labels: oc-runner
     permissions:
       id-token: "write"
       contents: "read"
