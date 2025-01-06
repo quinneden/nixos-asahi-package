@@ -669,7 +669,8 @@ let
           btrfs subvolume delete $mountPoint/ext2_saved
 
           # Defragment filesystem.
-          btrfs filesystem defrag -v -r -f -t 32M $mountPoint
+          echo "defragmenting filesystem..."
+          btrfs -q filesystem defrag -v -r -f -t 32M $mountPoint
 
           # Attempt to make btrfs metadata more compact.
           btrfs balance start -m $mountPoint

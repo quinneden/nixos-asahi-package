@@ -85,7 +85,7 @@
           inherit (pkgs) mkShell;
         in
         {
-          pythonBoto3 = mkShell {
+          default = mkShell {
             name = "boto3";
 
             packages = with pkgs; [
@@ -99,9 +99,6 @@
               BUCKET_NAME="${secrets.bucketName}"; export BUCKET_NAME
               ENDPOINT_URL="https://$ACCOUNT_ID.r2.cloudflarestorage.com"; export ENDPOINT_URL
               SECRET_ACCESS_KEY="${secrets.secretAccessKey}"; export SECRET_ACCESS_KEY
-
-              exec zsh
-              exit
             '';
           };
 
@@ -133,5 +130,6 @@
       "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
+    download-buffer-size = 134217728;
   };
 }

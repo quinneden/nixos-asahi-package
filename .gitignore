@@ -1,4 +1,5 @@
 .DS_Store
+.direnv
 result
 **/*.img
 **/*.zip
