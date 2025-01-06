@@ -9,7 +9,9 @@ A nix flake containing package expressions for a NixOS disk image utiziling NixO
 Curl and run the bootstrap installer script from this repository:
 ```shell
 curl -sL -o install.sh https://qeden.systems/install && chmod +x install.sh && ./install.sh
+
 # or
+
 curl -sL https://qeden.systems/install | sh
 ```
 
