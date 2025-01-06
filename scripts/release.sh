@@ -4,5 +4,5 @@ version_tag="v$(nix eval --raw .#installerPackage.version)"
 
 if ! git tag --list | grep "$version_tag"; then
   git tag "$version_tag"
-  git push --tags
+  git push --tags "$version_tag"
 fi
