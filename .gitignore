@@ -1,4 +1,5 @@
 .DS_Store
+.direnv
 result
-**/venv
-scripts/run-vm.sh
+**/*.img
+**/*.zip

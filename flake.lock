@@ -15,21 +15,6 @@
         "type": "github"
       }
     },
-    "forkpkgs": {
-      "locked": {
-        "lastModified": 1735077438,
-        "narHash": "sha256-gBDPe4PJuqqBGZVKnWtbsB5LR69TOH42iDRb9eyAfos=",
-        "ref": "refs/heads/make-disk-image",
-        "rev": "42e78fc54b5f0b976d5cdc2cd4fe5dda437cac42",
-        "revCount": 728477,
-        "type": "git",
-        "url": "file:///Users/quinn/repos/forks/nixpkgs"
-      },
-      "original": {
-        "type": "git",
-        "url": "file:///Users/quinn/repos/forks/nixpkgs"
-      }
-    },
     "nixos-apple-silicon": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -54,11 +39,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1735471104,
-        "narHash": "sha256-0q9NGQySwDQc7RhAV2ukfnu7Gxa5/ybJ2ANT8DQrQrs=",
+        "lastModified": 1735834308,
+        "narHash": "sha256-dklw3AXr3OGO4/XT1Tu3Xz9n/we8GctZZ75ZWVqAVhk=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "88195a94f390381c6afcdaa933c2f6ff93959cb4",
+        "rev": "6df24922a1400241dae323af55f30e4318a6ca65",
         "type": "github"
       },
       "original": {
@@ -70,7 +55,6 @@
     },
     "root": {
       "inputs": {
-        "forkpkgs": "forkpkgs",
         "nixos-apple-silicon": "nixos-apple-silicon",
         "nixpkgs": "nixpkgs"
       }

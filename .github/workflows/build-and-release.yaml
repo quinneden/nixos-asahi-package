@@ -1,0 +1,45 @@
+name: Build installer package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*.*"
+
+jobs:
+  build:
+    runs-on:
+      labels: oc-runner
+    permissions:
+      id-token: "write"
+      contents: "read"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+        with:
+          use-flakehub: false
+          diagnostic-endpoint: ""
+
+      - name: Decrypt Secrets
+        run: nix develop .#gitCrypt --command decrypt ${{ secrets.GIT_CRYPT_KEY }}
+
+      - name: Build package
+        run: nix build -L .#installerPackage
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nixos-asahi-${{ github.ref }}
+          path: result/nixos-asahi-*.zip
+          overwrite: true
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: result/nixos-asahi-*.zip
+
+      - name: Upload to CDN
+        if: startsWith(github.ref, 'refs/tags/')
+        run: nix run .#upload

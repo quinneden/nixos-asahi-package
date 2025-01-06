@@ -8,21 +8,21 @@
 with lib;
 let
   inherit (self.packages.aarch64-linux) nixosImage;
-  inherit (pkgs) runCommand writeShellScript;
+  inherit (pkgs) writeShellScript;
 
-  timestamp = readFile (runCommand "timestamp" { } "printf `date -u +%Y-%m-%d` > $out");
+  pkgVersion = "1.0-beta.1";
 
   writeInstallerData = writeShellScript "write-installer-data" ''
-    rootSize="$(cat $out/root_part_size)B"
-    jq -r ".package = \"https://cdn.qeden.systems/os/nixos-asahi-${timestamp}.zip\"
+    rootSize="$(cat $out/data/root_part_size)B"
+    jq -r ".package = \"https://cdn.qeden.systems/os/nixos-asahi-${pkgVersion}.zip\"
       | .partitions.[1].size = \"$rootSize\"
-      | .name = \"NixOS (${timestamp})\"" \
+      | .name = \"NixOS ${version} (nixos-asahi-${pkgVersion})\"" \
       < ${./data/installer_data.json}
   '';
 in
 stdenv.mkDerivation rec {
   pname = "nixos-asahi";
-  version = "1.0-beta.1";
+  version = "${pkgVersion}";
 
   src = nixosImage;
 
@@ -36,20 +36,19 @@ stdenv.mkDerivation rec {
 
   buildPhase = ''
     runHook preBuild
-    mkdir -p $out
+    mkdir -p $out/data
 
-    7z x $src/nixos-asahi.img
+    7z x $src/nixos-asahi.img 
     7z x ESP.img -o'esp'
 
     rm -rf esp/EFI/nixos/.extra-files
 
-    stat --printf '%s' root.img > $out/root_part_size
-    printf "${timestamp}" > $out/timestamp
+    stat --printf '%s' root.img > $out/data/root_part_size
+    printf '${pkgVersion}' > $out/data/version_tag
 
-    zip -r $out/${pname}-${timestamp}.zip esp root.img
+    zip -r $out/${pname}-${pkgVersion}.zip esp root.img
 
-    ${writeInstallerData} > $out/${pname}-${timestamp}.json
-
+    ${writeInstallerData} > $out/data/${pname}-${pkgVersion}.json
     runHook postBuild
   '';
 }

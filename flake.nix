@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    forkpkgs.url = "git+file:///Users/quinn/repos/forks/nixpkgs";
 
     nixos-apple-silicon = {
       url = "github:tpwrules/nixos-apple-silicon";
@@ -23,12 +22,14 @@
         "aarch64-linux"
         "aarch64-darwin"
       ];
+
       forEachSystem = inputs.nixpkgs.lib.genAttrs systems;
 
       secrets = builtins.fromJSON (builtins.readFile ./secrets.json);
     in
     {
-      packages.aarch64-linux =
+      packages = forEachSystem (
+        system:
         let
           system = "aarch64-linux";
           pkgs = import nixpkgs {
@@ -42,10 +43,11 @@
           nixosImage =
             let
               image-config = nixpkgs.lib.nixosSystem {
+                inherit system;
+
                 pkgs = import nixpkgs { inherit system; };
 
                 specialArgs = {
-                  inherit inputs;
                   modulesPath = nixpkgs + "/nixos/modules";
                 };
 
@@ -58,47 +60,20 @@
               config = image-config.config;
             in
             config.system.build.image;
-        };
-
-      nixosConfigurations.nixos = nixpkgs.lib.nixosSystem rec {
-        system = "aarch64-linux";
-        pkgs = import nixpkgs { inherit system; };
-
-        specialArgs = {
-          inherit inputs;
-          modulesPath = nixpkgs + "/nixos/modules";
-        };
-
-        modules = [ ./nixos/configuration.nix ];
-      };
+        }
+      );
 
       apps = forEachSystem (
         system:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
-          inherit (pkgs) lib writeShellApplication;
+          pkgs = import nixpkgs { inherit system; };
         in
-        with lib;
         rec {
           default = upload;
 
           upload = {
             type = "app";
-            program = getExe (writeShellApplication {
-              name = "upload";
-              runtimeInputs = with pkgs; [ (python3.withPackages (ps: [ ps.boto3 ])) ];
-              text = ''
-                ACCESS_KEY_ID="${secrets.accessKeyId}"; export ACCESS_KEY_ID
-                ACCOUNT_ID="${secrets.accountId}"; export ACCOUNT_ID
-                BUCKET_NAME="${secrets.bucketName}"; export BUCKET_NAME
-                ENDPOINT_URL="https://$ACCOUNT_ID.r2.cloudflarestorage.com"; export ENDPOINT_URL
-                SECRET_ACCESS_KEY="${secrets.secretAccessKey}"; export SECRET_ACCESS_KEY
-
-                echo 'Press enter to continue...'
-                read -r
-                exec ${./scripts/upload.sh}
-              '';
-            });
+            program = import ./app.nix { inherit pkgs secrets self; };
           };
         }
       );
@@ -106,7 +81,7 @@
       devShells = forEachSystem (
         system:
         let
-          pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+          pkgs = import nixpkgs { inherit system; };
           inherit (pkgs) mkShell;
         in
         {
@@ -124,11 +99,24 @@
               BUCKET_NAME="${secrets.bucketName}"; export BUCKET_NAME
               ENDPOINT_URL="https://$ACCOUNT_ID.r2.cloudflarestorage.com"; export ENDPOINT_URL
               SECRET_ACCESS_KEY="${secrets.secretAccessKey}"; export SECRET_ACCESS_KEY
-
-              exec zsh
-              exit
             '';
           };
+
+          gitCrypt =
+            let
+              decryptSecrets = pkgs.writeShellScriptBin "decrypt" ''
+                [[ $# -gt 0 ]] || exit 1
+                base64 -d <<< "$1" | git-crypt unlock -
+              '';
+            in
+            mkShell {
+              name = "git-crypt";
+
+              packages = with pkgs; [
+                decryptSecrets
+                git-crypt
+              ];
+            };
         }
       );
     };
@@ -142,5 +130,6 @@
       "nixos-asahi.cachix.org-1:CPH9jazpT/isOQvFhtAZ0Z18XNhAp29+LLVHr0b2qVk="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
+    download-buffer-size = 134217728;
   };
 }
