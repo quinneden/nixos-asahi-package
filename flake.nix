@@ -119,6 +119,8 @@
             };
         }
       );
+
+      formatter = forEachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
     };
 
   nixConfig = {
