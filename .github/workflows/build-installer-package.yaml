@@ -2,6 +2,9 @@ name: Build installer package
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - github-action
 
 jobs:
   build:
