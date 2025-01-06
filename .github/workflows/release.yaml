@@ -1,0 +1,26 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v?[0-9]+?.[0-9]+.[0-9]+.*"
+
+jobs:
+  build:
+    runs-on:
+      labels: oc-runner
+    permissions:
+      id-token: "write"
+      contents: "read"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: github-action
+      - name: Decrypt Secrets
+        run: nix develop .#gitCrypt --command decrypt ${{ secrets.GIT_CRYPT_KEY }}
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+        with:
+          use-flakehub: false
+          diagnostic-endpoint: ""
+      - name: Upload to CDN
+        run: nix run .#upload
