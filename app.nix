@@ -94,7 +94,6 @@ let
         if re.search(substring, obj.key):
             if obj.key.endswith("json"):
                 print(obj.key)
-
   '';
 in
 with lib;
