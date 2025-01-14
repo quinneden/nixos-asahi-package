@@ -1,102 +1,36 @@
-# Modified copy of nixpkgs/nixos/lib/make-disk-image.nix to allow
-# converting ext4 filesystem to btrfs after image build.
-# TODO: Allow creating btrfs filesystem directly without needing to convert.
+/*
+  Modified copy of nixpkgs/nixos/lib/make-disk-image.nix to allow
+  converting ext4 filesystem to btrfs after image build.
+  TODO: Allow creating btrfs filesystem directly without needing to convert.
+*/
 {
   pkgs,
   lib,
-
-  # The NixOS configuration to be installed onto the disk image.
   config,
-
-  # The size of the disk, in megabytes.
-  # if "auto" size is calculated based on the contents copied to it and
-  #   additionalSpace is taken into account.
   diskSize ? "auto",
-
-  # additional disk space to be added to the image if diskSize "auto"
-  # is used
   additionalSpace ? "512M",
-
-  # size of the boot partition, is only used if partitionTableType is
-  # either "efi" or "hybrid"
-  # This will be undersized slightly, as this is actually the offset of
-  # the end of the partition. Generally it will be 1MiB smaller.
   bootSize ? "256M",
-
-  # The files and directories to be placed in the target file system.
-  # This is a list of attribute sets {source, target, mode, user, group} where
-  # `source' is the file system object (regular file or directory) to be
-  # grafted in the file system at path `target', `mode' is a string containing
-  # the permissions that will be set (ex. "755"), `user' and `group' are the
-  # user and group name that will be set as owner of the files.
-  # `mode', `user', and `group' are optional.
-  # When setting one of `user' or `group', the other needs to be set too.
   contents ? [ ],
-
-  # Type of partition table to use; described in the `Image Partitioning` section above.
   partitionTableType ? "legacy",
-
-  # Whether to invoke `switch-to-configuration boot` during image creation
   installBootLoader ? true,
-
-  # Whether to output have EFIVARS available in $out/efi-vars.fd and use it during disk creation
   touchEFIVars ? false,
-
-  # OVMF firmware derivation
   OVMF ? pkgs.OVMF.fd,
-
-  # EFI firmware
   efiFirmware ? OVMF.firmware,
-
-  # EFI variables
   efiVariables ? OVMF.variables,
-
-  # The root file system type.
   fsType ? "ext4",
-
-  # Filesystem label
   label ? if onlyNixStore then "nix-store" else "nixos",
-
   configFile ? null,
-
   postVM ? "",
-
-  # Guest memory size
   memSize ? 1024,
-
   onlyNixStore ? false,
-
   name ? "nixos-disk-image",
-
   format ? "raw",
-
   baseName ? "nixos-asahi",
-
-  # Whether to fix:
-  #   - GPT Disk Unique Identifier (diskGUID)
-  #   - GPT Partition Unique Identifier: depends on the layout, root partition UUID can be controlled through `rootGPUID` option
-  #   - GPT Partition Type Identifier: fixed according to the layout, e.g. ESP partition, etc. through `parted` invocation.
-  #   - Filesystem Unique Identifier when fsType = ext4 for *root partition*.
-  # BIOS/MBR support is "best effort" at the moment.
-  # Boot partitions may not be deterministic.
-  # Also, to fix last time checked of the ext4 partition if fsType = ext4.
   deterministic ? true,
-
-  # GPT Partition Unique Identifier for root partition.
   rootGPUID ? "F222513B-DED1-49FA-B591-20CE86A2FE7F",
-  # When fsType = ext4, this is the root Filesystem Unique Identifier.
-  # TODO: support other filesystems someday.
   rootFSUID ? (if fsType == "ext4" then rootGPUID else null),
-
-  # Whether a nix channel based on the current source tree should be
-  # made available inside the image. Useful for interactive use of nix
-  # utils, but changes the hash of the image when the sources are
-  # updated.
   copyChannel ? true,
-
-  # Additional store paths to copy to the image's store.
   additionalPaths ? [ ],
-
   convertToBtrfs ? false,
 }:
 
