@@ -10,7 +10,7 @@ let
   inherit (self.packages.aarch64-linux) nixosImage;
   inherit (pkgs) writeShellScript;
 
-  pkgVersion = "1.0-beta.1";
+  pkgVersion = "1.0-beta.2";
 
   writeInstallerData = writeShellScript "write-installer-data" ''
     rootSize="$(cat $out/data/root_part_size)B"
