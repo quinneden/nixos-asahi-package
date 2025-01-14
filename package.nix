@@ -31,6 +31,7 @@ stdenv.mkDerivation rec {
     gptfdisk
     jq
     p7zip
+    util-linux
     zip
   ];
 
@@ -38,8 +39,18 @@ stdenv.mkDerivation rec {
     runHook preBuild
     mkdir -p $out/data
 
-    7z x $src/nixos-asahi.img
-    7z x ESP.img -o'esp'
+    diskImage=$src/nixos.img
+
+    ESP_START=$(partx $diskImage -go START --nr 1)
+    ESP_SECTORS=$(partx $diskImage -go SECTORS --nr 1)
+    ROOT_SECTORS=$(partx $diskImage -go START --nr 2)
+    ROOT_SECTORS=$(partx $diskImage -go SECTORS --nr 2)
+
+    dd if=nixos.img of=esp.img bs=512 skip="$ESP_START" count="$ESP_SECTORS"
+    dd if=nixos.img of=root.img bs=512 skip="$ROOT_START" count="$ROOT_SECTORS"
+
+    7z x esp.img -o'esp'
+    rm -f esp.img
 
     rm -rf esp/EFI/nixos/.extra-files
 
