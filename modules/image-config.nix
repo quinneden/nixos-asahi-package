@@ -8,17 +8,14 @@
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  system.build.image = (
-    import ./make-disk-image.nix {
-      inherit lib config pkgs;
-      configFile = "${../nixos/configuration.nix}";
-      convertToBtrfs = true;
-      format = "raw";
-      memSize = 4096;
-      name = "nixos-asahi-image";
-      partitionTableType = "efi";
-    }
-  );
+  system.build.image = import "${modulesPath}/../lib/make-disk-image.nix" {
+    inherit lib config pkgs;
+    configFile = "${../nixos/configuration.nix}";
+    format = "raw";
+    memSize = 4096;
+    name = "nixos-asahi-image";
+    partitionTableType = "efi";
+  };
 
   boot = {
     initrd.availableKernelModules = [
@@ -38,7 +35,7 @@
         util-linux
         gawk
         parted
-        btrfs-progs
+        e2fsprogs
         cpio
         ;
 
@@ -52,7 +49,7 @@
           # Resize the root partition and the filesystem to fit the disk
           echo ',+,' | sfdisk -N"$partNum" --no-reread "$firmwareDevice"
           ${parted}/bin/partprobe
-          ${btrfs-progs}/bin/btrfs filesystem resize max /
+          ${e2fsprogs}/bin/resize2fs "$rootPart"
         fi
       '';
     in
@@ -75,7 +72,7 @@
     '';
 
   hardware.asahi = {
-    extractPeripheralFirmware = false;
+    extractPeripheralFirmware = false; # Extract the firmware during boot because it can't legally be included in the image.
     experimentalGPUInstallMode = "overlay";
     useExperimentalGPUDriver = true;
     setupAsahiSound = true;
@@ -86,11 +83,8 @@
 
   fileSystems."/" = {
     device = lib.mkForce "/dev/disk/by-label/nixos";
-    fsType = "btrfs";
-    options = [
-      "compress=zstd"
-      "subvol=@root"
-    ];
+    fsType = "ext4";
+    options = [ "noatime" ];
   };
 
   fileSystems."/boot" = {
@@ -124,9 +118,7 @@
     };
   };
 
-  environment.systemPackages = with pkgs; [
-    git
-  ];
+  environment.systemPackages = with pkgs; [ git ];
 
   services = {
     getty.autologinUser = "nixos";

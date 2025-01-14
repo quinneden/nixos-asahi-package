@@ -1,12 +1,8 @@
-{
-  modulesPath,
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ pkgs, ... }:
 {
   imports =
+    # Import nixos-apple-silicon using fetchTarball since this is a standalone
+    # configuration. If using flakes, just add it to inputs.
     let
       nixos-apple-silicon = fetchTarball {
         url = "https://github.com/tpwrules/nixos-apple-silicon/archive/refs/tags/release-2024-12-25.tar.gz";

@@ -38,7 +38,7 @@ stdenv.mkDerivation rec {
     runHook preBuild
     mkdir -p $out/data
 
-    7z x $src/nixos-asahi.img 
+    7z x $src/nixos-asahi.img
     7z x ESP.img -o'esp'
 
     rm -rf esp/EFI/nixos/.extra-files

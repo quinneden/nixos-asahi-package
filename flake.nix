@@ -61,11 +61,7 @@
 
               config = image-config.config;
             in
-            config.system.build.image.overrideAttrs (old: {
-              passthru = (old.passthru or { }) // {
-                inherit config;
-              };
-            });
+            config.system.build.image;
         }
       );
 
