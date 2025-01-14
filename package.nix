@@ -43,7 +43,7 @@ stdenv.mkDerivation rec {
 
     ESP_START=$(partx $diskImage -go START --nr 1)
     ESP_SECTORS=$(partx $diskImage -go SECTORS --nr 1)
-    ROOT_SECTORS=$(partx $diskImage -go START --nr 2)
+    ROOT_START=$(partx $diskImage -go START --nr 2)
     ROOT_SECTORS=$(partx $diskImage -go SECTORS --nr 2)
 
     dd if=nixos.img of=esp.img bs=512 skip="$ESP_START" count="$ESP_SECTORS"
