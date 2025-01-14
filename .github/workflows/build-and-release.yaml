@@ -22,7 +22,7 @@ jobs:
           diagnostic-endpoint: ""
 
       - name: Decrypt Secrets
-        run: nix develop .#gitCrypt --command decrypt ${{ secrets.GIT_CRYPT_KEY }}
+        run: nix run .#decrypt -- ${{ secrets.GIT_CRYPT_KEY }}
 
       - name: Build package
         run: nix build -L .#installerPackage

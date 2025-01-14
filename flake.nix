@@ -1,5 +1,5 @@
 {
-  description = "NixOS disk image with apple silicon support and zip archive of the image for the asahi-installer.";
+  description = "Configuration for a NixOS disk image and zipfile to be consumed by the asahi-installer.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -16,35 +16,37 @@
       nixos-apple-silicon,
       self,
       ...
-    }@inputs:
+    }:
     let
-      systems = [
-        "aarch64-linux"
-        "aarch64-darwin"
-      ];
-
-      forEachSystem = inputs.nixpkgs.lib.genAttrs systems;
+      forEachSystem =
+        function:
+        nixpkgs.lib.genAttrs
+          [
+            "aarch64-darwin"
+            "aarch64-linux"
+          ]
+          (
+            system:
+            function {
+              pkgs = import nixpkgs {
+                inherit system;
+                overlays = [ nixos-apple-silicon.overlays.default ];
+              };
+            }
+          );
 
       secrets = builtins.fromJSON (builtins.readFile ./secrets.json);
     in
     {
       packages = forEachSystem (
-        system:
-        let
-          system = "aarch64-linux";
-          pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ nixos-apple-silicon.overlays.default ];
-          };
-        in
+        { pkgs }:
         {
           installerPackage = pkgs.callPackage ./package.nix { inherit self pkgs; };
 
           nixosImage =
             let
-              image-config = nixpkgs.lib.nixosSystem {
-                inherit system;
-
+              image-config = nixpkgs.lib.nixosSystem rec {
+                system = "aarch64-linux";
                 pkgs = import nixpkgs { inherit system; };
 
                 specialArgs = {
@@ -59,15 +61,16 @@
 
               config = image-config.config;
             in
-            config.system.build.image;
+            config.system.build.image.overrideAttrs (old: {
+              passthru = (old.passthru or { }) // {
+                inherit config;
+              };
+            });
         }
       );
 
       apps = forEachSystem (
-        system:
-        let
-          pkgs = import nixpkgs { inherit system; };
-        in
+        { pkgs }:
         rec {
           default = upload;
 
@@ -75,23 +78,37 @@
             type = "app";
             program = import ./app.nix { inherit pkgs secrets self; };
           };
+
+          decrypt =
+            let
+              inherit (pkgs) lib writeShellApplication;
+            in
+            with lib;
+            {
+              type = "app";
+              program = getExe (writeShellApplication {
+                name = "decrypt-secrets";
+                text = ''
+                  [[ $# -gt 0 ]] || exit 1
+                  base64 -d <<< "$1" | git-crypt unlock -
+                '';
+              });
+            };
         }
       );
 
       devShells = forEachSystem (
-        system:
+        { pkgs }:
         let
-          pkgs = import nixpkgs { inherit system; };
           inherit (pkgs) mkShell;
         in
-        {
-          default = mkShell {
+        rec {
+          default = boto3;
+
+          boto3 = mkShell {
             name = "boto3";
 
-            packages = with pkgs; [
-              (python3.withPackages (ps: [ ps.boto3 ]))
-              zsh
-            ];
+            packages = with pkgs; [ (python3.withPackages (ps: [ ps.boto3 ])) ];
 
             shellHook = ''
               ACCESS_KEY_ID="${secrets.accessKeyId}"; export ACCESS_KEY_ID
@@ -101,26 +118,10 @@
               SECRET_ACCESS_KEY="${secrets.secretAccessKey}"; export SECRET_ACCESS_KEY
             '';
           };
-
-          gitCrypt =
-            let
-              decryptSecrets = pkgs.writeShellScriptBin "decrypt" ''
-                [[ $# -gt 0 ]] || exit 1
-                base64 -d <<< "$1" | git-crypt unlock -
-              '';
-            in
-            mkShell {
-              name = "git-crypt";
-
-              packages = with pkgs; [
-                decryptSecrets
-                git-crypt
-              ];
-            };
         }
       );
 
-      formatter = forEachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+      formatter = forEachSystem (pkgs: pkgs.nixfmt-rfc-style);
     };
 
   nixConfig = {
