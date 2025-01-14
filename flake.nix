@@ -84,6 +84,7 @@
               type = "app";
               program = getExe (writeShellApplication {
                 name = "decrypt-secrets";
+                runtimeInputs = [ pkgs.git-crypt ];
                 text = ''
                   [[ $# -gt 0 ]] || exit 1
                   base64 -d <<< "$1" | git-crypt unlock -
