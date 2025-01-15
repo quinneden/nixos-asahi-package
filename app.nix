@@ -28,14 +28,12 @@ let
     r2_endpoint = f"https://${accountId}.r2.cloudflarestorage.com"
     bucket_name = "${bucketName}"
 
-    zipfile_path = "${toString installerPackage}/nixos-asahi-${version}.zip"
-    data_path = "${toString installerPackage}/data/nixos-asahi-${version}.json"
-    joined_data_path = "installer_data.json"
+    zipfile_path = "${toString installerPackage}nixos-asahi-${version}.zip"
+    data_path = "installer_data.json"
 
     obj_dict = {
         zipfile_path: f"os/nixos-asahi-${version}.zip",
-        data_path: f"os/nixos-asahi-${version}.json",
-        joined_data_path: f"data/installer_data.json",
+        data_path: f"data/installer_data.json",
     }
 
     s3 = boto3.client(
@@ -102,13 +100,18 @@ getExe (writeShellApplication {
   runtimeInputs = with pkgs; [ (python3.withPackages (ps: [ ps.boto3 ])) ];
   text = ''
     tmpDir=$(mktemp -d)
+    export tmpDir
 
     mkdir -p "$tmpDir"
     cd "$tmpDir"
 
+    echo "Copying files to tempdir and changing file permissions..."
+    cp ${toString installerPackage}/nixos-asahi-${version}.zip ./
+    chmod 644 nixos-asahi-${version}.zip
+
     python3 ${listObjectsPy} > object_list
 
-    if [[ -s object_list ]]; then  
+    if [[ -s object_list ]]; then
       xargs -I % curl -LO https://cdn.qeden.systems/% < object_list
       sed -i 's/os\///g' ./object_list
       mapfile dataFiles < ./object_list

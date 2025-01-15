@@ -13,7 +13,7 @@ let
   pkgVersion = "1.0-beta.2";
 
   writeInstallerData = writeShellScript "write-installer-data" ''
-    rootSize="$(cat $out/data/root_part_size)B"
+    rootSize="$(cat ./root_part_size)B"
     jq -r ".package = \"https://cdn.qeden.systems/os/nixos-asahi-${pkgVersion}.zip\"
       | .partitions.[1].size = \"$rootSize\"
       | .name = \"NixOS ${version} (nixos-asahi-${pkgVersion})\"" \
@@ -31,35 +31,38 @@ stdenv.mkDerivation rec {
     gptfdisk
     jq
     p7zip
-    util-linux
     zip
   ];
 
   buildPhase = ''
     runHook preBuild
-    mkdir -p $out/data
 
     diskImage=$src/nixos.img
 
-    ESP_START=$(partx $diskImage -go START --nr 1)
-    ESP_SECTORS=$(partx $diskImage -go SECTORS --nr 1)
-    ROOT_START=$(partx $diskImage -go START --nr 2)
-    ROOT_SECTORS=$(partx $diskImage -go SECTORS --nr 2)
+    7z x $src/nixos.img
+    mv primary.img root.img
 
-    dd if=nixos.img of=esp.img bs=512 skip="$ESP_START" count="$ESP_SECTORS"
-    dd if=nixos.img of=root.img bs=512 skip="$ROOT_START" count="$ROOT_SECTORS"
-
-    7z x esp.img -o'esp'
-    rm -f esp.img
-
+    7z x -sdel ESP.img -o'esp'
     rm -rf esp/EFI/nixos/.extra-files
 
-    stat --printf '%s' root.img > $out/data/root_part_size
-    printf '${pkgVersion}' > $out/data/version_tag
+    zip -r "${pname}-${pkgVersion}".zip esp root.img
 
-    zip -r $out/${pname}-${pkgVersion}.zip esp root.img
+    stat --printf '%s' root.img > root_part_size
+    printf '${pkgVersion}' > version_tag
 
-    ${writeInstallerData} > $out/data/${pname}-${pkgVersion}.json
+    ${writeInstallerData} > "${pname}-${pkgVersion}".json
+
     runHook postBuild
+  '';
+
+  installPhase = ''
+    runHook preInstall
+    mkdir -p $out/data
+
+    install -m 755 ./"${pname}-${pkgVersion}.zip" $out
+    install -m 755 ./"${pname}-${pkgVersion}.json" $out/data
+    install -m 755 ./version_tag $out/data
+
+    runHook postInstall
   '';
 }
