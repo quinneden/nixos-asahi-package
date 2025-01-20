@@ -15,8 +15,6 @@ let
     secretAccessKey
     ;
 
-  newData = "${toString installerPackage}/data/nixos-asahi-${version}.json";
-
   uploadPy = writeScript "upload.py" ''
     import boto3
     import os
@@ -28,15 +26,10 @@ let
     r2_endpoint = f"https://${accountId}.r2.cloudflarestorage.com"
     bucket_name = "${bucketName}"
 
-    zipfile_path = "${toString installerPackage}/nixos-asahi-${version}.zip"
-    data_path = "${toString installerPackage}/data/nixos-asahi-${version}.json"
-    joined_data_path = "installer_data.json"
+    pkg_zip = "nixos-asahi-${version}.zip"
+    pkg_data = "installer_data.json"
 
-    obj_dict = {
-        zipfile_path: f"os/nixos-asahi-${version}.zip",
-        data_path: f"os/nixos-asahi-${version}.json",
-        joined_data_path: f"data/installer_data.json",
-    }
+    obj_list = [pkg_zip, pkg_data]
 
     s3 = boto3.client(
         "s3",
@@ -53,74 +46,42 @@ let
     )
 
 
-    def upload_to_r2(file_path, object_key):
-        with open(file_path, "rb") as f:
+    def upload_to_r2(file):
+        content_type = "text/plain" if file.endswith(".json") else "application/octet-stream"
+        prefix = "data" if file.endswith(".json") else "os"
+        with open(file, "rb") as fb:
             s3.upload_fileobj(
-                Fileobj=f,
+                fb,ExtraArgs={'ContentType': content_type},
                 Bucket=bucket_name,
-                Key=object_key,
+                Key=os.path.join(prefix, file),
                 Config=transfer_config,
             )
 
-    for path, key in obj_dict.items():
-        upload_to_r2(path, key)
+    for obj in obj_list:
+        upload_to_r2(obj)
   '';
 
-  listObjectsPy = writeScript "list_objects.py" ''
-    import boto3
-    import re
-    import os
-
-    access_key_id = "${accessKeyId}"
-    account_id = "${accountId}"
-    secret_access_key = "${secretAccessKey}"
-
-    session = boto3.Session(
-        aws_access_key_id=access_key_id,
-        aws_secret_access_key=secret_access_key,
-    )
-
-    s3 = session.resource(
-        "s3",
-        endpoint_url=f"https://{account_id}.r2.cloudflarestorage.com",
-        region_name="auto",
-    )
-
-    r2_bucket = s3.Bucket("${bucketName}")
-
-    substring = "os"
-
-    for obj in r2_bucket.objects.all():
-        if re.search(substring, obj.key):
-            if obj.key.endswith("json"):
-                print(obj.key)
-  '';
 in
 with lib;
 getExe (writeShellApplication {
-  name = "release";
+  name = "upload-pkg-to-r2";
   runtimeInputs = with pkgs; [ (python3.withPackages (ps: [ ps.boto3 ])) ];
   text = ''
+    pkgData="installer_data-${version}.json"
+    pkgZip="nixos-asahi-${version}.zip"
     tmpDir=$(mktemp -d)
+    trap 'rm -rf $tmpDir' EXIT
 
-    mkdir -p "$tmpDir"
-    cd "$tmpDir"
+    pushd "$tmpDir" > /dev/null
+    cp ${installerPackage}/{"$pkgZip","$pkgData"} ./.
+    chmod -R +w ./.
 
-    python3 ${listObjectsPy} > object_list
-
-    if [[ -s object_list ]]; then  
-      xargs -I % curl -LO https://cdn.qeden.systems/% < object_list
-      sed -i 's/os\///g' ./object_list
-      mapfile dataFiles < ./object_list
-      rm object_list
-    fi
-
-    dataFiles+=("${newData}")
-
-    jq -s '{os_list: .}' "''${dataFiles[@]}" > installer_data.json
+    curl -sf -o os_list "https://cdn.qeden.systems/data/installer_data.json" || exit 1
+    jq '.os_list += [input]' os_list $pkgData > installer_data.json
 
     echo "Uploading package and installer data to bucket..."
-    python3 ${uploadPy}
-    echo "Upload finished!"
+    python3 ${uploadPy} || exit 1
+    echo "Done!"
+    popd > /dev/null
   '';
 })

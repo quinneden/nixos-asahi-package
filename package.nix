@@ -7,59 +7,69 @@
 }:
 with lib;
 let
+  genInstallerData = import ./lib/gen-installer-data.nix { inherit pkgs lib; };
+
   inherit (self.packages.aarch64-linux) nixosImage;
-  inherit (pkgs) writeShellScript;
 
-  pkgVersion = "1.0-beta.2";
+  pkgVersion = "1.0-beta.3";
 
-  writeInstallerData = writeShellScript "write-installer-data" ''
-    rootSize="$(cat $out/data/root_part_size)B"
-    jq -r ".package = \"https://cdn.qeden.systems/os/nixos-asahi-${pkgVersion}.zip\"
-      | .partitions.[1].size = \"$rootSize\"
-      | .name = \"NixOS ${version} (nixos-asahi-${pkgVersion})\"" \
-      < ${./data/installer_data.json}
-  '';
+  espSize = readFile (nixosImage + "/esp_size");
+  rootSize = readFile (nixosImage + "/root_size");
+
+  installerData = genInstallerData pkgVersion espSize rootSize;
 in
-stdenv.mkDerivation rec {
+
+stdenv.mkDerivation (finalAttrs: {
   pname = "nixos-asahi";
-  version = "${pkgVersion}";
+  version = pkgVersion;
 
   src = nixosImage;
 
   nativeBuildInputs = with pkgs; [
     coreutils
-    gptfdisk
+    gawk
     jq
     p7zip
     util-linux
-    zip
   ];
 
   buildPhase = ''
     runHook preBuild
-    mkdir -p $out/data
 
-    diskImage=$src/nixos.img
+    diskImage="nixos.img"
+    baseDir="$PWD"
 
-    ESP_START=$(partx $diskImage -go START --nr 1)
-    ESP_SECTORS=$(partx $diskImage -go SECTORS --nr 1)
-    ROOT_START=$(partx $diskImage -go START --nr 2)
-    ROOT_SECTORS=$(partx $diskImage -go SECTORS --nr 2)
+    pkgName="${finalAttrs.pname}-${finalAttrs.version}"
+    pkgData="installer_data-${finalAttrs.version}.json"
+    pkgZip="$pkgName.zip"
 
-    dd if=nixos.img of=esp.img bs=512 skip="$ESP_START" count="$ESP_SECTORS"
-    dd if=nixos.img of=root.img bs=512 skip="$ROOT_START" count="$ROOT_SECTORS"
+    pushd $src > /dev/null
+    eval "$(
+      fdisk -Lnever -lu -b 512 "$diskImage" | \
+      awk "/^$diskImage/ { printf \"dd if=$diskImage of=$baseDir/%s skip=%s count=%s bs=512\\n\", \$1, \$2, \$4 }"
+    )"
+    popd > /dev/null
 
-    7z x esp.img -o'esp'
-    rm -f esp.img
+    mkdir -p "package/esp"
 
-    rm -rf esp/EFI/nixos/.extra-files
+    7z x -o"package/esp" "''${diskImage}1"
+    rm -rf package/esp/EFI/nixos/.extra-files
 
-    stat --printf '%s' root.img > $out/data/root_part_size
-    printf '${pkgVersion}' > $out/data/version_tag
+    mv "''${diskImage}2" package/root.img
 
-    zip -r $out/${pname}-${pkgVersion}.zip esp root.img
+    pushd "$baseDir/package" > /dev/null
+    7z a -tzip -r -mx1 "$baseDir/$pkgZip" .
+    popd > /dev/null
 
-    ${writeInstallerData} > $out/data/${pname}-${pkgVersion}.json
     runHook postBuild
   '';
-}
+
+  installPhase = ''
+    runHook preInstall
+
+    install -m 644 "$pkgZip" $out
+    install -m 644 ${installerData} $out/$pkgData
+
+    runHook postInstall
+  '';
+})
