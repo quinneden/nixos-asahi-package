@@ -66,6 +66,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   installPhase = ''
     runHook preInstall
+    mkdir -p $out
 
     install -m 644 "$pkgZip" $out
     install -m 644 ${installerData} $out/$pkgData

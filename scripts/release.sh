@@ -18,10 +18,10 @@ if [[ -n "$uncommited_changes" ]]; then
   exit 1
 fi
 
-if (git tag --list | grep "$version") &>/dev/null; then
-  echo "version already exists" >&2
-  exit 1
-fi
+# if (git tag --list | grep "$version") &>/dev/null; then
+#   echo "version already exists" >&2
+#   exit 1
+# fi
 
 echo "{ version = \"$version\"; }" > version.nix
 
@@ -29,3 +29,6 @@ git commit -am "release: v$version"
 git tag -a "v$version" -m "release: v$version"
 git tag -d "latest"
 git tag -a "latest" -m "release: v$version"
+
+echo "To push the release, run the following command:"
+echo "  git push origin master v$version && git push --force origin latest"
