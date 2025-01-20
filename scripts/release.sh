@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v$(nix eval --raw .#installerPackage.version)"
+version="$(nix eval --raw .#installerPackage.version)"
 
 if [[ ! -f "flake.nix" ]]; then
   echo "This script must be run from the root of the repository" >&2
@@ -18,10 +18,12 @@ if [[ -n "$uncommited_changes" ]]; then
   exit 1
 fi
 
-if (git tag --list | grep "$version"); then
+if (git tag --list | grep "$version") &>/dev/null; then
   echo "version already exists" >&2
   exit 1
 fi
+
+echo "{ version = \"$version\"; }" > version.nix
 
 git commit -am "release: v$version"
 git tag -a "v$version" -m "release: v$version"
