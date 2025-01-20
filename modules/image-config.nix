@@ -8,13 +8,9 @@
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  system.build.image = import "${modulesPath}/../lib/make-disk-image.nix" {
+  system.build.image = import ../lib/make-disk-image.nix {
     inherit lib config pkgs;
     configFile = "${../nixos/configuration.nix}";
-    format = "raw";
-    memSize = 4096;
-    name = "nixos-asahi-image";
-    partitionTableType = "efi";
   };
 
   boot = {
@@ -72,7 +68,7 @@
     '';
 
   hardware.asahi = {
-    extractPeripheralFirmware = false; # Extract the firmware during boot because it can't legally be included in the image.
+    extractPeripheralFirmware = false; # Can't legally be included in the image.
     experimentalGPUInstallMode = "overlay";
     useExperimentalGPUDriver = true;
     setupAsahiSound = true;
@@ -82,13 +78,12 @@
   documentation.enable = false;
 
   fileSystems."/" = {
-    device = lib.mkForce "/dev/disk/by-label/nixos";
+    device = "/dev/disk/by-label/nixos";
     fsType = "ext4";
-    options = [ "noatime" ];
   };
 
   fileSystems."/boot" = {
-    device = lib.mkForce "/dev/disk/by-label/ESP";
+    device = "/dev/disk/by-uuid/12CE-A600";
     fsType = "vfat";
     options = [
       "fmask=0022"
@@ -118,7 +113,9 @@
     };
   };
 
-  environment.systemPackages = with pkgs; [ git ];
+  environment.systemPackages = [ ];
+
+  programs.git.enable = true;
 
   services = {
     getty.autologinUser = "nixos";

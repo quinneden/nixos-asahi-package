@@ -7,62 +7,69 @@
 }:
 with lib;
 let
+  genInstallerData = import ./lib/gen-installer-data.nix { inherit pkgs lib; };
+
   inherit (self.packages.aarch64-linux) nixosImage;
-  inherit (pkgs) writeShellScript;
 
-  pkgVersion = "1.0-beta.2";
+  pkgVersion = "1.0-beta.3";
 
-  writeInstallerData = writeShellScript "write-installer-data" ''
-    rootSize="$(cat ./root_part_size)B"
-    jq -r ".package = \"https://cdn.qeden.systems/os/nixos-asahi-${pkgVersion}.zip\"
-      | .partitions.[1].size = \"$rootSize\"
-      | .name = \"NixOS ${version} (nixos-asahi-${pkgVersion})\"" \
-      < ${./data/installer_data.json}
-  '';
+  espSize = readFile (nixosImage + "/esp_size");
+  rootSize = readFile (nixosImage + "/root_size");
+
+  installerData = genInstallerData pkgVersion espSize rootSize;
 in
-stdenv.mkDerivation rec {
+
+stdenv.mkDerivation (finalAttrs: {
   pname = "nixos-asahi";
-  version = "${pkgVersion}";
+  version = pkgVersion;
 
   src = nixosImage;
 
   nativeBuildInputs = with pkgs; [
     coreutils
-    gptfdisk
+    gawk
     jq
     p7zip
-    zip
+    util-linux
   ];
 
   buildPhase = ''
     runHook preBuild
 
-    diskImage=$src/nixos.img
+    diskImage="nixos.img"
+    baseDir="$PWD"
 
-    7z x $src/nixos.img
-    mv primary.img root.img
+    pkgName="${finalAttrs.pname}-${finalAttrs.version}"
+    pkgData="installer_data-${finalAttrs.version}.json"
+    pkgZip="$pkgName.zip"
 
-    7z x -sdel ESP.img -o'esp'
-    rm -rf esp/EFI/nixos/.extra-files
+    pushd $src > /dev/null
+    eval "$(
+      fdisk -Lnever -lu -b 512 "$diskImage" | \
+      awk "/^$diskImage/ { printf \"dd if=$diskImage of=$baseDir/%s skip=%s count=%s bs=512\\n\", \$1, \$2, \$4 }"
+    )"
+    popd > /dev/null
 
-    zip -r "${pname}-${pkgVersion}".zip esp root.img
+    mkdir -p "package/esp"
 
-    stat --printf '%s' root.img > root_part_size
-    printf '${pkgVersion}' > version_tag
+    7z x -o"package/esp" "''${diskImage}1"
+    rm -rf package/esp/EFI/nixos/.extra-files
 
-    ${writeInstallerData} > "${pname}-${pkgVersion}".json
+    mv "''${diskImage}2" package/root.img
+
+    pushd "$baseDir/package" > /dev/null
+    7z a -tzip -r -mx1 "$baseDir/$pkgZip" .
+    popd > /dev/null
 
     runHook postBuild
   '';
 
   installPhase = ''
     runHook preInstall
-    mkdir -p $out/data
 
-    install -m 755 ./"${pname}-${pkgVersion}.zip" $out
-    install -m 755 ./"${pname}-${pkgVersion}.json" $out/data
-    install -m 755 ./version_tag $out/data
+    install -m 644 "$pkgZip" $out
+    install -m 644 ${installerData} $out/$pkgData
 
     runHook postInstall
   '';
-}
+})

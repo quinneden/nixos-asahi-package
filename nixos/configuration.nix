@@ -56,32 +56,14 @@
     };
   };
 
+  # users.users."FIXME" = {
+  #   isNormalUser = true;
+  #   extraGroups = [ "wheel" ];
+  # };
+
   users.mutableUsers = true;
 
   services.openssh.enable = true;
-  services.flatpak.enable = true;
-
-  services.desktopManager.plasma6 = {
-    enable = true;
-    excludePackages = with pkgs.kdePackages; [
-      plasma-browser-integration
-      ark
-      elisa
-      gwenview
-      kate
-      khelpcenter
-      baloo-widgets
-      xwaylandvideobridge
-    ];
-  };
-
-  services.displayManager.sddm = {
-    enable = true;
-    wayland.enable = true;
-    wayland.compositor = "kwin";
-    theme = "breeze";
-    autoNumlock = true;
-  };
 
   environment.systemPackages = with pkgs; [
     asahi-bless # reboot to macOS
@@ -91,8 +73,6 @@
     maliit-framework
     maliit-keyboard
     micro
-    nano
-    networkmanager-applet
     vim
   ];
 

@@ -18,6 +18,7 @@ if true; then
   export LANG=en_US.UTF-8
   export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
+  # shellcheck disable=SC3020
   if ! curl --no-progress-meter file:/// &>/dev/null; then
     echo "Your version of cURL is too old. This usually means your macOS is very out"
     echo "of date. Installing Asahi Linux requires at least macOS version 13.5."
@@ -26,7 +27,7 @@ if true; then
 
   export VERSION_FLAG=https://cdn.asahilinux.org/installer/latest
   export INSTALLER_BASE=https://cdn.asahilinux.org/installer
-  export INSTALLER_DATA=${INSTALLER_DATA:-https://cdn.qeden.systems/data/installer_data.json}
+  export INSTALLER_DATA="${INSTALLER_DATA:-https://cdn.qeden.systems/data/installer_data.json}"
   export REPO_BASE=https://cdn.qeden.systems
 
   TMP=/tmp/asahi-install
