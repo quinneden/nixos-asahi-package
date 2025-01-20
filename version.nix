@@ -1,1 +1,1 @@
-{ version = ""; released = true; }
+{ version = "1.0-beta.3"; }
