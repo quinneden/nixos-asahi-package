@@ -11,7 +11,7 @@ let
 
   inherit (self.packages.aarch64-linux) nixosImage;
 
-  pkgVersion = "1.0-beta.3";
+  pkgVersion = (import ./version.nix).version;
 
   espSize = readFile (nixosImage + "/esp_size");
   rootSize = readFile (nixosImage + "/root_size");
