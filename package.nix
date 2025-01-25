@@ -58,7 +58,7 @@ stdenv.mkDerivation (finalAttrs: {
     mv "''${diskImage}2" package/root.img
 
     pushd "$baseDir/package" > /dev/null
-    7z a -tzip -r -mx1 "$baseDir/$pkgZip" .
+    7z a -tzip -r -mx1 "$baseDir/$pkgZip" ./.
     popd > /dev/null
 
     runHook postBuild
