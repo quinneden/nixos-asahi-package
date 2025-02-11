@@ -4,6 +4,11 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
+    secrets = {
+      url = "git+ssh://git@github.com/quinneden/secrets.git?ref=main&shallow=1";
+      inputs = { };
+    };
+
     nixos-apple-silicon = {
       url = "github:tpwrules/nixos-apple-silicon";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -14,6 +19,7 @@
     {
       nixpkgs,
       nixos-apple-silicon,
+      secrets,
       self,
       ...
     }:
@@ -34,8 +40,6 @@
               };
             }
           );
-
-      secrets = builtins.fromJSON (builtins.readFile ./secrets.json);
     in
     {
       packages = forEachSystem (
@@ -96,23 +100,20 @@
 
       devShells = forEachSystem (
         { pkgs }:
-        let
-          inherit (pkgs) mkShell;
-        in
         rec {
           default = boto3;
 
-          boto3 = mkShell {
+          boto3 = pkgs.mkShell {
             name = "boto3";
 
             packages = with pkgs; [ (python3.withPackages (ps: [ ps.boto3 ])) ];
 
             shellHook = ''
-              ACCESS_KEY_ID="${secrets.accessKeyId}"; export ACCESS_KEY_ID
-              ACCOUNT_ID="${secrets.accountId}"; export ACCOUNT_ID
-              BUCKET_NAME="${secrets.bucketName}"; export BUCKET_NAME
+              ACCESS_KEY_ID="${secrets.nixos-asahi-package.accessKeyId}"; export ACCESS_KEY_ID
+              ACCOUNT_ID="${secrets.nixos-asahi-package.accountId}"; export ACCOUNT_ID
+              BUCKET_NAME="${secrets.nixos-asahi-package.bucketName}"; export BUCKET_NAME
               ENDPOINT_URL="https://$ACCOUNT_ID.r2.cloudflarestorage.com"; export ENDPOINT_URL
-              SECRET_ACCESS_KEY="${secrets.secretAccessKey}"; export SECRET_ACCESS_KEY
+              SECRET_ACCESS_KEY="${secrets.nixos-asahi-package.secretAccessKey}"; export SECRET_ACCESS_KEY
             '';
           };
         }
