@@ -1,6 +1,6 @@
 {
-  pkgs,
   secrets,
+  pkgs,
   self,
   ...
 }:
@@ -8,7 +8,7 @@ let
   inherit (pkgs) lib writeShellApplication writeScript;
   inherit (self.packages.${pkgs.system}) installerPackage;
   inherit (installerPackage) version;
-  inherit (secrets)
+  inherit (secrets.nixos-asahi-package)
     accessKeyId
     accountId
     bucketName

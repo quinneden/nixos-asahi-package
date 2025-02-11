@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-version="$(nix eval --raw .#installerPackage.version)"
+version_nix=$(nix build --no-link --print-out-paths -f ./scripts/bump-version.nix)
+version_new=$(nix eval --raw --impure --expr 'let inherit (import ./version.nix) version; in version')
 
 if [[ ! -f "flake.nix" ]]; then
   echo "This script must be run from the root of the repository" >&2
@@ -18,17 +19,12 @@ if [[ -n "$uncommited_changes" ]]; then
   exit 1
 fi
 
-# if (git tag --list | grep "$version") &>/dev/null; then
-#   echo "version already exists" >&2
-#   exit 1
-# fi
+cat "$version_nix" > ./version.nix
 
-echo "{ version = \"$version\"; }" > version.nix
-
-git commit -am "release: v$version"
-git tag -a "v$version" -m "release: v$version"
+git commit -am "release: v$version_new"
+git tag -a "v$version_new" -m "release: v$version_new"
 git tag -d "latest"
-git tag -a "latest" -m "release: v$version"
+git tag -a "latest" -m "release: v$version_new"
 
 echo "To push the release, run the following command:"
-echo "  git push origin master v$version && git push --force origin latest"
+echo "  git push origin main v$version_new && git push --force origin latest"
