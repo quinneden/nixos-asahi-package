@@ -8,11 +8,12 @@ A nix flake containing package expressions for a NixOS disk image utiziling NixO
 
 Curl and run the bootstrap installer script from this repository:
 ```shell
-curl -sL -o install.sh https://qeden.systems/install && chmod +x install.sh && ./install.sh
+curl -sL -o install-nixos.sh https://qeden.systems/install
+sh ./install-nixos.sh
 
 # or
 
-curl -sL https://qeden.systems/install | sh
+sh <(curl -sL https://qeden.systems/install)
 ```
 
 This is a modified copy of the bootstrap script from the [asahi-installer](https://github.com/asahilinux/asahi-installer) repository. Be sure to follow the instructions carefully, as it is possible a mistake could leave your system in an unbootable state.
