@@ -57,6 +57,8 @@ getExe (writeShellApplication {
       ps.boto3
       ps.python-dotenv
     ]))
+    jq
+    curl
   ];
   text = ''
     pkgData="installer_data-${version}.json"
