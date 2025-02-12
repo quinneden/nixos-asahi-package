@@ -9,7 +9,8 @@ let
   majorMinor = versions.majorMinor version;
   minorInt = toInt (versions.minor version);
   patchInt = toInt (versions.patch version);
-
+in
+{
   versionNew =
     if (patchInt != 9) then
       majorMinor + "." + (toString (patchInt + 1))
@@ -25,7 +26,4 @@ let
         "0"
         "0"
       ]);
-in
-pkgs.runCommand "increment-version" { } ''
-  echo -n '{ version = "${versionNew}"; }' > $out
-''
+}

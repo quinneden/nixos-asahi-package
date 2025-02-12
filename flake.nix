@@ -72,6 +72,11 @@
             type = "app";
             program = import ./app.nix { inherit pkgs self; };
           };
+
+          release = {
+            type = "app";
+            program = import ./scripts/release.nix { inherit pkgs; };
+          };
         }
       );
 
@@ -94,6 +99,8 @@
               source .env
             '';
           };
+
+          release = import ./scripts/release.nix { inherit pkgs; };
         }
       );
 
