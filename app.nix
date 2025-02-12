@@ -13,9 +13,6 @@ let
     import os
     import sys
     from botocore.config import Config
-    from dotenv import dotenv_values
-
-    secrets = dotenv_values(".env")
 
     pkg_zip = "nixos-asahi-${version}.zip"
     pkg_data = "installer_data.json"
@@ -26,9 +23,9 @@ let
         "s3",
         region_name="auto",
         config=Config(signature_version="s3v4"),
-        aws_access_key_id=secrets["ACCESS_KEY_ID"],
-        aws_secret_access_key=secrets["SECRET_ACCESS_KEY"],
-        endpoint_url=secrets["ENDPOINT_URL"],
+        aws_access_key_id=os.getenv("ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("SECRET_ACCESS_KEY"),
+        endpoint_url=os.getenv("ENDPOINT_URL"),
     )
 
     transfer_config = boto3.s3.transfer.TransferConfig(
@@ -43,7 +40,7 @@ let
         with open(file, "rb") as fb:
             s3.upload_fileobj(
                 fb,ExtraArgs={'ContentType': content_type},
-                Bucket=bucket_name,
+                Bucket=os.getenv("BUCKET_NAME"),
                 Key=os.path.join(prefix, file),
                 Config=transfer_config,
             )
@@ -68,7 +65,10 @@ getExe (writeShellApplication {
 
     trap 'rm -rf $tmpDir' EXIT
 
-    pushd "$tmpDir" > /dev/null
+    # shellcheck disable=SC1091
+    source .env
+
+    pushd "$tmpDir" > /dev/null || exit 1
     cp ${installerPackage}/{"$pkgZip","$pkgData"} ./.
     chmod -R +w ./.
 
