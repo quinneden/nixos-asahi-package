@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 version_nix=$(nix build --no-link --print-out-paths -f ./scripts/bump-version.nix)
-version_new=$(nix eval --raw --impure --expr 'let inherit (import ./version.nix) version; in version')
+version_new=$(nix eval --raw --impure --expr "let inherit (import $version_nix) version; in version")
 
 if [[ ! -f "flake.nix" ]]; then
   echo "This script must be run from the root of the repository" >&2
