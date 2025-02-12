@@ -39,6 +39,8 @@
       packages = forEachSystem (
         { pkgs }:
         {
+          create-release = pkgs.callPackage ./scripts/create-release.nix { };
+
           installerPackage = pkgs.callPackage ./package.nix { inherit self pkgs; };
 
           nixosImage =
@@ -72,11 +74,6 @@
             type = "app";
             program = import ./app.nix { inherit pkgs self; };
           };
-
-          release = {
-            type = "app";
-            program = import ./scripts/release.nix { inherit pkgs; };
-          };
         }
       );
 
@@ -96,11 +93,9 @@
             ];
 
             shellHook = ''
-              source .env
+              source .env || true
             '';
           };
-
-          release = import ./scripts/release.nix { inherit pkgs; };
         }
       );
 
