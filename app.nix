@@ -70,14 +70,15 @@ getExe (writeShellApplication {
     pkgData="installer_data-${version}.json"
     pkgZip="nixos-asahi-${version}.zip"
     tmpDir=$(mktemp -d)
+
     trap 'rm -rf $tmpDir' EXIT
 
     pushd "$tmpDir" > /dev/null
     cp ${installerPackage}/{"$pkgZip","$pkgData"} ./.
     chmod -R +w ./.
 
-    curl -sf -o os_list "https://cdn.qeden.systems/data/installer_data.json" || exit 1
-    jq '.os_list += [input]' os_list $pkgData > installer_data.json
+    curl -sf -o os_list.json "https://cdn.qeden.systems/data/installer_data.json" || exit 1
+    jq '.os_list += [input]' os_list.json $pkgData > installer_data.json
 
     echo "Uploading package and installer data to bucket..."
     python3 ${uploadPy} || exit 1
