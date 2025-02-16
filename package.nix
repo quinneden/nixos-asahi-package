@@ -5,23 +5,23 @@
   stdenv,
   ...
 }:
-with lib;
+
 let
-  genInstallerData = import ./lib/gen-installer-data.nix { inherit pkgs lib; };
-
   inherit (self.packages.aarch64-linux) nixosImage;
+  inherit (import ./version.nix) version;
 
-  pkgVersion = (import ./version.nix).version;
-
-  espSize = readFile (nixosImage + "/esp_size");
-  rootSize = readFile (nixosImage + "/root_size");
-
-  installerData = genInstallerData pkgVersion espSize rootSize;
+  installerDataJSON =
+    with lib;
+    utils.generateInstallerData {
+      espSize = readFile (nixosImage + "/esp_size");
+      rootSize = readFile (nixosImage + "/root_size");
+      inherit version;
+    };
 in
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "nixos-asahi";
-  version = pkgVersion;
+  inherit version;
 
   src = nixosImage;
 
@@ -61,16 +61,14 @@ stdenv.mkDerivation (finalAttrs: {
     7z a -tzip -r -mx1 "$baseDir/$pkgZip" ./.
     popd > /dev/null
 
+    echo -n ${lib.escapeShellArg installerDataJSON} > $pkgData
+
     runHook postBuild
   '';
 
   installPhase = ''
     runHook preInstall
-    mkdir -p $out
-
-    install -m 644 "$pkgZip" $out
-    install -m 644 ${installerData} $out/$pkgData
-
+    install -Dm644 -t $out $pkgZip $pkgData
     runHook postInstall
   '';
 })

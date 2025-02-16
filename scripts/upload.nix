@@ -3,12 +3,12 @@
   self,
   ...
 }:
+
 let
-  inherit (pkgs) lib writeShellApplication writeScript;
   inherit (self.packages.${pkgs.system}) installerPackage;
   inherit (installerPackage) version;
 
-  uploadPy = writeScript "upload.py" ''
+  uploadPy = pkgs.writeScript "upload.py" ''
     import boto3
     import os
     import sys
@@ -49,9 +49,10 @@ let
         upload_to_r2(obj)
   '';
 in
-with lib;
-getExe (writeShellApplication {
-  name = "upload-pkg-to-r2";
+
+pkgs.writeShellApplication {
+  name = "upload-to-cdn";
+
   runtimeInputs = with pkgs; [
     (python3.withPackages (ps: [
       ps.boto3
@@ -60,6 +61,7 @@ getExe (writeShellApplication {
     jq
     curl
   ];
+
   text = ''
     pkgData="installer_data-${version}.json"
     pkgZip="nixos-asahi-${version}.zip"
@@ -82,4 +84,4 @@ getExe (writeShellApplication {
     echo "Done!"
     popd > /dev/null
   '';
-})
+}
