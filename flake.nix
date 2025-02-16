@@ -59,18 +59,6 @@
         }
       );
 
-      # apps = forEachSystem (
-      #   { pkgs }:
-      #   rec {
-      #     default = upload;
-
-      #     upload = {
-      #       type = "app";
-      #       program = import ./scripts/upload.nix { inherit pkgs self lib; };
-      #     };
-      #   }
-      # );
-
       devShells = forEachSystem (
         { pkgs }:
         rec {
