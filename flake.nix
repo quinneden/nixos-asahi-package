@@ -1,5 +1,5 @@
 {
-  description = "Configuration for a NixOS disk image and zipfile to be consumed by the asahi-installer.";
+  description = "NixOS package for the Asahi-installer.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
