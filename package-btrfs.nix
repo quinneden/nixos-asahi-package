@@ -7,15 +7,17 @@
 }:
 
 let
-  inherit (self.packages.${pkgs.system}) nixosImage;
+  inherit (self.packages.${pkgs.system}) btrfsImage;
   inherit (import ./version.nix) version;
 
   installerDataJSON =
     with lib;
     utils.generateInstallerData {
-      espSize = readFile (nixosImage + "/esp_size");
-      rootSize = readFile (nixosImage + "/root_size");
       inherit version;
+      inherit (import "${btrfsImage}/partinfo.nix")
+        espSize
+        rootSize
+        ;
     };
 in
 
@@ -23,7 +25,7 @@ stdenv.mkDerivation (finalAttrs: {
   pname = "nixos-asahi";
   inherit version;
 
-  src = nixosImage;
+  src = btrfsImage;
 
   nativeBuildInputs = with pkgs; [
     coreutils
@@ -36,19 +38,16 @@ stdenv.mkDerivation (finalAttrs: {
   buildPhase = ''
     runHook preBuild
 
-    diskImage="nixos.img"
-    baseDir="$PWD"
+    diskImage="main.raw"
 
     pkgName="${finalAttrs.pname}-${finalAttrs.version}"
     pkgData="installer_data-${finalAttrs.version}.json"
     pkgZip="$pkgName.zip"
 
-    pushd $src > /dev/null
     eval "$(
-      fdisk -Lnever -lu -b 512 "$diskImage" | \
-      awk "/^$diskImage/ { printf \"dd if=$diskImage of=$baseDir/%s skip=%s count=%s bs=512\\n\", \$1, \$2, \$4 }"
+      fdisk -Lnever -lu -b 512 "$diskImage" |
+      awk "/^$diskImage/ { printf \"dd if=$diskImage of=%s skip=%s count=%s bs=512\\n\", \$1, \$2, \$4 }"
     )"
-    popd > /dev/null
 
     mkdir -p "package/esp"
 
@@ -57,11 +56,12 @@ stdenv.mkDerivation (finalAttrs: {
 
     mv "''${diskImage}2" package/root.img
 
-    pushd "$baseDir/package" > /dev/null
-    7z a -tzip -r -mx1 "$baseDir/$pkgZip" ./.
+    pushd package/ > /dev/null
+    echo -n 'creating compressed archive:'
+    7z a -tzip -r -mx1 -bso0 ../"$pkgZip" ./.
     popd > /dev/null
 
-    echo -n ${lib.escapeShellArg installerDataJSON} > $pkgData
+    jq <<< ${lib.escapeShellArg installerDataJSON} > $pkgData
 
     runHook postBuild
   '';

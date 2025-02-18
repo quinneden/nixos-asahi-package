@@ -1,6 +1,8 @@
 .DS_Store
 .direnv
 .env
+.env.testing
 result
 **/*.img
+**/*.raw
 **/*.zip

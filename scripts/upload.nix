@@ -35,15 +35,19 @@ let
 
 
     def upload_to_r2(file):
-        content_type = "text/plain" if file.endswith(".json") else "application/octet-stream"
+        content_type = (
+            "text/plain" if file.endswith(".json") else "application/octet-stream"
+        )
         prefix = "data" if file.endswith(".json") else "os"
         with open(file, "rb") as fb:
             s3.upload_fileobj(
-                fb,ExtraArgs={'ContentType': content_type},
+                fb,
+                ExtraArgs={"ContentType": content_type},
                 Bucket=os.getenv("BUCKET_NAME"),
                 Key=os.path.join(prefix, file),
                 Config=transfer_config,
             )
+
 
     for obj in obj_list:
         upload_to_r2(obj)
@@ -63,20 +67,38 @@ pkgs.writeShellApplication {
   ];
 
   text = ''
+    # shellcheck disable=SC1091,SC1090
     pkgData="installer_data-${version}.json"
     pkgZip="nixos-asahi-${version}.zip"
     tmpDir=$(mktemp -d)
 
     trap 'rm -rf $tmpDir' EXIT
 
-    # shellcheck disable=SC1091
-    source .env
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --testing)
+          envFile="''${2:-.env.testing}"
+          shift 2
+          ;;
+        *)
+          echo "Unknown argument: $1"
+          exit 1
+          ;;
+      esac
+    done
+
+    envFile="''${envFile:-.env}"
+
+    source "$envFile"
 
     pushd "$tmpDir" > /dev/null || exit 1
     cp ${installerPackage}/{"$pkgZip","$pkgData"} ./.
     chmod -R +w ./.
 
-    curl -sf -o os_list.json "https://cdn.qeden.systems/data/installer_data.json" || exit 1
+    if ! curl -sf -o os_list.json "https://cdn.qeden.systems/data/installer_data.json"; then
+      echo -n '{"os_list": []}' > os_list.json
+    fi
+
     jq '.os_list += [input]' os_list.json "$pkgData" > installer_data.json
 
     echo "Uploading package and installer data to bucket..."

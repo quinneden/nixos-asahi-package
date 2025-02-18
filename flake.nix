@@ -2,6 +2,11 @@
   description = "NixOS package for the Asahi-installer.";
 
   inputs = {
+    disko = {
+      url = "github:nix-community/disko/latest";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
     nixos-apple-silicon = {
@@ -12,6 +17,7 @@
 
   outputs =
     {
+      disko,
       nixpkgs,
       nixos-apple-silicon,
       self,
@@ -33,11 +39,34 @@
         {
           create-release = pkgs.callPackage ./scripts/create-release.nix { };
 
+          btrfsImage =
+            let
+              imageConfig = nixpkgs.lib.nixosSystem rec {
+                system = "aarch64-linux";
+                pkgs = import nixpkgs { inherit system; };
+
+                specialArgs = {
+                  modulesPath = nixpkgs + "/nixos/modules";
+                };
+
+                modules = [
+                  disko.nixosModules.default
+                  nixos-apple-silicon.nixosModules.default
+                  ./modules/btrfs-image-config.nix
+                ];
+              };
+
+              config = imageConfig.config;
+            in
+            (config.system.build.diskoImages // { passthru = { inherit config; }; });
+
+          btrfsInstallerPackage = pkgs.callPackage ./package-btrfs.nix { inherit self lib; };
+
           installerPackage = pkgs.callPackage ./package.nix { inherit self lib; };
 
           nixosImage =
             let
-              image-config = nixpkgs.lib.nixosSystem rec {
+              imageConfig = nixpkgs.lib.nixosSystem rec {
                 system = "aarch64-linux";
                 pkgs = import nixpkgs { inherit system; };
 
@@ -51,9 +80,9 @@
                 ];
               };
 
-              config = image-config.config;
+              config = imageConfig.config;
             in
-            config.system.build.image;
+            (config.system.build.image // { passthru = { inherit config; }; });
 
           upload = pkgs.callPackage ./scripts/upload.nix { inherit self; };
         }
@@ -68,10 +97,7 @@
             name = "boto3";
 
             packages = with pkgs; [
-              (python3.withPackages (ps: [
-                ps.boto3
-                ps.python-dotenv
-              ]))
+              (python3.withPackages (ps: [ ps.boto3 ]))
             ];
 
             shellHook = ''
