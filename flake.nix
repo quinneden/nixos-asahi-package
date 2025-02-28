@@ -2,11 +2,6 @@
   description = "NixOS package for the Asahi-installer.";
 
   inputs = {
-    disko = {
-      url = "github:nix-community/disko/latest";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
     nixos-apple-silicon = {
@@ -17,12 +12,10 @@
 
   outputs =
     {
-      disko,
       nixpkgs,
-      nixos-apple-silicon,
       self,
       ...
-    }:
+    }@inputs:
     let
       forEachSystem =
         function:
@@ -32,37 +25,15 @@
         ] (system: function { pkgs = import nixpkgs { inherit system; }; });
 
       lib = nixpkgs.lib.extend (self: super: { utils = import ./utils.nix { inherit (nixpkgs) lib; }; });
+
+      versionInfo = import ./version.nix;
+      version = versionInfo.version + (lib.optionalString (!versionInfo.released) "-dirty");
     in
     {
       packages = forEachSystem (
         { pkgs }:
-        {
-          create-release = pkgs.callPackage ./scripts/create-release.nix { };
-
-          btrfsImage =
-            let
-              imageConfig = nixpkgs.lib.nixosSystem rec {
-                system = "aarch64-linux";
-                pkgs = import nixpkgs { inherit system; };
-
-                specialArgs = {
-                  modulesPath = nixpkgs + "/nixos/modules";
-                };
-
-                modules = [
-                  disko.nixosModules.default
-                  nixos-apple-silicon.nixosModules.default
-                  ./modules/btrfs-image-config.nix
-                ];
-              };
-
-              config = imageConfig.config;
-            in
-            (config.system.build.diskoImages // { passthru = { inherit config; }; });
-
-          btrfsInstallerPackage = pkgs.callPackage ./package-btrfs.nix { inherit self lib; };
-
-          installerPackage = pkgs.callPackage ./package.nix { inherit self lib; };
+        rec {
+          create-release = pkgs.callPackage ./scripts/create-release.nix { inherit version; };
 
           nixosImage =
             let
@@ -75,7 +46,7 @@
                 };
 
                 modules = [
-                  nixos-apple-silicon.nixosModules.default
+                  inputs.nixos-apple-silicon.nixosModules.default
                   ./modules/image-config.nix
                 ];
               };
@@ -84,7 +55,12 @@
             in
             (config.system.build.image // { passthru = { inherit config; }; });
 
-          upload = pkgs.callPackage ./scripts/upload.nix { inherit self; };
+          installerPackage = pkgs.callPackage ./package.nix {
+            inherit lib version;
+            image = nixosImage;
+          };
+
+          upload = pkgs.callPackage ./scripts/upload.nix { inherit self version; };
         }
       );
 
@@ -95,13 +71,12 @@
 
           boto3 = pkgs.mkShell {
             name = "boto3";
-
             packages = with pkgs; [
               (python3.withPackages (ps: [ ps.boto3 ]))
             ];
 
             shellHook = ''
-              source .env || true
+              source ./.env || true
             '';
           };
         }

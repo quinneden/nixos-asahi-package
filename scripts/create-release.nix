@@ -1,15 +1,16 @@
 {
-  lib,
-  writeShellApplication,
   bash,
   coreutils,
   git,
+  lib,
+  version,
+  writeShellApplication,
 }:
 
 with lib;
 
 let
-  curVer = (import ../version.nix).version;
+  curVer = version;
   majorInt = toInt (versions.major curVer);
   majorMinor = versions.majorMinor curVer;
   minorInt = toInt (versions.minor curVer);

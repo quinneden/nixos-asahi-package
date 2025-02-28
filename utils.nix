@@ -4,16 +4,16 @@
     {
       espSize,
       rootSize,
-      version,
+      version ? (import ./version.nix).version,
+      baseUrl ? "https://pub-4b458b0cfaa1441eb321ecefef7d540e.r2.dev",
     }:
     let
-      baseUrl = "https://pub-4b458b0cfaa1441eb321ecefef7d540e.r2.dev";
       nixpkgsVersion = lib.versions.majorMinor lib.version;
       pkgName = "nixos-asahi-" + version;
     in
     lib.generators.toJSON { } {
       name = "NixOS ${nixpkgsVersion} (${pkgName})";
-      default_os_name = "NixOS ${nixpkgsVersion}";
+      default_os_name = "NixOS";
 
       boot_object = "m1n1.bin";
       next_object = "m1n1/boot.bin";

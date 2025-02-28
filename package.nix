@@ -1,21 +1,22 @@
 {
+  image,
   lib,
   pkgs,
-  self,
   stdenv,
+  version,
   ...
 }:
 
 let
-  inherit (self.packages.${pkgs.system}) nixosImage;
-  inherit (import ./version.nix) version;
-
   installerDataJSON =
     with lib;
     utils.generateInstallerData {
-      espSize = readFile (nixosImage + "/esp_size");
-      rootSize = readFile (nixosImage + "/root_size");
+      baseUrl = "https://pub-fde369a15aa048a4862bc80e0af2e747.r2.dev";
       inherit version;
+      inherit (import "${image}/partinfo.nix")
+        espSize
+        rootSize
+        ;
     };
 in
 
@@ -23,7 +24,7 @@ stdenv.mkDerivation (finalAttrs: {
   pname = "nixos-asahi";
   inherit version;
 
-  src = nixosImage;
+  src = image;
 
   nativeBuildInputs = with pkgs; [
     coreutils
@@ -37,31 +38,27 @@ stdenv.mkDerivation (finalAttrs: {
     runHook preBuild
 
     diskImage="nixos.img"
-    baseDir="$PWD"
-
-    pkgName="${finalAttrs.pname}-${finalAttrs.version}"
     pkgData="installer_data-${finalAttrs.version}.json"
-    pkgZip="$pkgName.zip"
+    pkgZip="${finalAttrs.pname}-${finalAttrs.version}.zip"
 
-    pushd $src > /dev/null
     eval "$(
-      fdisk -Lnever -lu -b 512 "$diskImage" | \
-      awk "/^$diskImage/ { printf \"dd if=$diskImage of=$baseDir/%s skip=%s count=%s bs=512\\n\", \$1, \$2, \$4 }"
+      fdisk -Lnever -lu -b 512 "$diskImage" |
+      awk "/^$diskImage/ { printf \"dd if=$diskImage of=%s skip=%s count=%s bs=512\\n\", \$1, \$2, \$4 }"
     )"
-    popd > /dev/null
 
     mkdir -p "package/esp"
 
     7z x -o"package/esp" "''${diskImage}1"
-    rm -rf package/esp/EFI/nixos/.extra-files
-
     mv "''${diskImage}2" package/root.img
 
-    pushd "$baseDir/package" > /dev/null
-    7z a -tzip -r -mx1 "$baseDir/$pkgZip" ./.
-    popd > /dev/null
+    pushd package/ > /dev/null || exit 1
 
-    echo -n ${lib.escapeShellArg installerDataJSON} > $pkgData
+    echo -n 'creating compressed archive:'
+    7z a -tzip -r -mx1 -bso0 ../"$pkgZip" ./.
+
+    popd > /dev/null || exit 1
+
+    jq <<< ${lib.escapeShellArg installerDataJSON} > $pkgData
 
     runHook postBuild
   '';

@@ -1,17 +1,16 @@
 {
   pkgs,
   self,
+  version,
   ...
 }:
 
 let
   inherit (self.packages.${pkgs.system}) installerPackage;
-  inherit (installerPackage) version;
 
   uploadPy = pkgs.writeScript "upload.py" ''
     import boto3
     import os
-    import sys
     from botocore.config import Config
 
     pkg_zip = "nixos-asahi-${version}.zip"
@@ -33,7 +32,6 @@ let
         multipart_chunksize=8 * 1024 * 1024,
     )
 
-
     def upload_to_r2(file):
         content_type = (
             "text/plain" if file.endswith(".json") else "application/octet-stream"
@@ -48,7 +46,6 @@ let
                 Config=transfer_config,
             )
 
-
     for obj in obj_list:
         upload_to_r2(obj)
   '';
@@ -60,7 +57,6 @@ pkgs.writeShellApplication {
   runtimeInputs = with pkgs; [
     (python3.withPackages (ps: [
       ps.boto3
-      ps.python-dotenv
     ]))
     jq
     curl
@@ -78,7 +74,7 @@ pkgs.writeShellApplication {
       case "$1" in
         --testing)
           envFile="''${2:-.env.testing}"
-          shift 2
+          shift "$#"
           ;;
         *)
           echo "Unknown argument: $1"
