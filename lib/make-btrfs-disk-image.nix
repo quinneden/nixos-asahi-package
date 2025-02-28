@@ -97,11 +97,20 @@ let
             export PATH=${tools}:$PATH
             set -x
 
+            round_to_nearest() {
+              echo $(( ( $1 / $2 + 1) * $2 ))
+            }
+
+            bootSize=$(round_to_nearest $(numfmt --from=iec '${bootSize}') $mebibyte)
+            bootSizeMiB=$(( bootSize / 1024 / 1024 ))MiB
+
             parted --script /dev/vda -- \
               mklabel gpt \
-              mkpart ESP fat32 8MiB ${toString bootSize} \
+              mkpart ESP fat32 8MiB $bootSizeMiB \
               set 1 boot on \
-              mkpart primary btrfs ${toString bootSize}MiB -1 \
+              align-check optimal 1 \
+              mkpart primary btrfs $bootSizeMiB 100% \
+              align-check optimal 2 \
               print
 
             sgdisk \
