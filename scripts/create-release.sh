@@ -33,13 +33,16 @@ if [[ "$unpushed_commits" != "" ]]; then
 fi
 
 # Update the version file
-echo "{ version = \"$version\"; }" > version.nix
+echo -e "{\n  version = \"$version\";\n  released = true;\n}" > version.nix
 
 # Commit and tag the release
 git commit -am "release: v$version"
 git tag -a "v$version" -m "release: v$version"
 git tag -d "latest"
 git tag -a "latest" -m "release: v$version"
+
+echo -e "{\n  version = \"$version\";\n  released = false;\n}" > version.nix
+git commit -am "release: reset released flag"
 
 echo "Release was prepared successfully!"
 echo "To push the release, run the following command:"
