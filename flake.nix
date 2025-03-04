@@ -13,66 +13,84 @@
   outputs =
     {
       nixpkgs,
-      nixos-apple-silicon,
       self,
       ...
-    }:
+    }@inputs:
     let
-      forEachSystem =
-        function:
-        nixpkgs.lib.genAttrs [
-          "aarch64-darwin"
-          "aarch64-linux"
-        ] (system: function { pkgs = import nixpkgs { inherit system; }; });
+      forEachSystem = lib.genAttrs [
+        "aarch64-darwin"
+        "aarch64-linux"
+      ];
 
-      lib = nixpkgs.lib.extend (self: super: { utils = import ./utils.nix { inherit (nixpkgs) lib; }; });
+      lib = nixpkgs.lib.extend (
+        self: super: { utils = import ./lib/utils.nix { inherit (nixpkgs) lib; }; }
+      );
+
+      pkgs = import nixpkgs { system = "aarch64-linux"; };
+
+      versionInfo = import ./version.nix;
+      version = versionInfo.version + (lib.optionalString (!versionInfo.released) "-dirty");
     in
     {
-      packages = forEachSystem (
-        { pkgs }:
+      packages.aarch64-linux =
+        let
+          imageConfig = lib.nixosSystem rec {
+            system = "aarch64-linux";
+            pkgs = import nixpkgs { inherit system; };
+
+            specialArgs = {
+              modulesPath = nixpkgs + "/nixos/modules";
+              inherit version;
+            };
+
+            modules = [
+              inputs.nixos-apple-silicon.nixosModules.default
+              ./modules/image-config.nix
+            ];
+          };
+        in
+        rec {
+          installerPackage = pkgs.callPackage ./package.nix {
+            inherit lib version;
+            image = btrfsImage;
+          };
+
+          btrfsImage = imageConfig.config.system.build.btrfsImage // {
+            passthru = { inherit imageConfig; };
+          };
+
+          ext4Image = imageConfig.config.system.build.ext4Image // {
+            passthru = { inherit imageConfig; };
+          };
+        };
+
+      apps = forEachSystem (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
         {
-          create-release = pkgs.callPackage ./scripts/create-release.nix { };
+          create-release = {
+            type = "app";
+            program = lib.getExe (pkgs.callPackage ./scripts/create-release.nix { inherit version; });
+          };
 
-          installerPackage = pkgs.callPackage ./package.nix { inherit self lib; };
-
-          nixosImage =
-            let
-              image-config = nixpkgs.lib.nixosSystem rec {
-                system = "aarch64-linux";
-                pkgs = import nixpkgs { inherit system; };
-
-                specialArgs = {
-                  modulesPath = nixpkgs + "/nixos/modules";
-                };
-
-                modules = [
-                  nixos-apple-silicon.nixosModules.default
-                  ./modules/image-config.nix
-                ];
-              };
-
-              config = image-config.config;
-            in
-            config.system.build.image;
-
-          upload = pkgs.callPackage ./scripts/upload.nix { inherit self; };
+          upload = {
+            type = "app";
+            program = lib.getExe (
+              pkgs.callPackage ./scripts/upload.nix {
+                inherit (self.packages.aarch64-linux) installerPackage;
+              }
+            );
+          };
         }
       );
 
-      # apps = forEachSystem (
-      #   { pkgs }:
-      #   rec {
-      #     default = upload;
-
-      #     upload = {
-      #       type = "app";
-      #       program = import ./scripts/upload.nix { inherit pkgs self lib; };
-      #     };
-      #   }
-      # );
-
       devShells = forEachSystem (
-        { pkgs }:
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
         rec {
           default = boto3;
 
@@ -80,10 +98,7 @@
             name = "boto3";
 
             packages = with pkgs; [
-              (python3.withPackages (ps: [
-                ps.boto3
-                ps.python-dotenv
-              ]))
+              (python3.withPackages (ps: [ ps.boto3 ]))
             ];
 
             shellHook = ''
@@ -93,7 +108,7 @@
         }
       );
 
-      formatter = forEachSystem ({ pkgs }: pkgs.nixfmt-rfc-style);
+      formatter = forEachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
     };
 
   nixConfig = {

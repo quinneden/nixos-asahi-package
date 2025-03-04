@@ -3,15 +3,29 @@
   lib,
   modulesPath,
   pkgs,
+  version,
   ...
 }:
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  system.build.image = import ../lib/make-disk-image.nix {
-    inherit lib config pkgs;
-    configFile = "${../nixos/configuration.nix}";
-  };
+  system.build = lib.genAttrs [ "btrfsImage" "ext4Image" ] (
+    imageType:
+    let
+      fsType = lib.removeSuffix "Image" imageType;
+    in
+    import ../lib/make-disk-image.nix {
+      copyConfig = "${../nixos}";
+      fsType = fsType;
+      inherit
+        config
+        lib
+        pkgs
+        version
+        ;
+
+    }
+  );
 
   boot = {
     initrd.availableKernelModules = [
@@ -26,56 +40,63 @@
 
   boot.postBootCommands =
     let
-      inherit (pkgs)
-        asahi-fwextract
-        util-linux
-        gawk
-        parted
-        e2fsprogs
-        cpio
-        ;
-
-      expandOnFirstBoot = ''
-        if [[ ! -f /nix/var/nix/profiles/default/system ]]; then
-          # Figure out device names for the boot device and root filesystem.
-          rootPart=$(${util-linux}/bin/findmnt -nvo SOURCE /)
-          firmwareDevice=$(lsblk -npo PKNAME $rootPart)
-          partNum=$(lsblk -npo MAJ:MIN "$rootPart" | ${gawk}/bin/awk -F: '{print $2}' | tr -d '[:space:]')
-
-          # Resize the root partition and the filesystem to fit the disk
-          echo ',+,' | sfdisk -N"$partNum" --no-reread "$firmwareDevice"
-          ${parted}/bin/partprobe
-          ${e2fsprogs}/bin/resize2fs "$rootPart"
-        fi
-      '';
+      binPath = lib.makeBinPath (
+        with pkgs;
+        [
+          asahi-fwextract
+          btrfs-progs
+          cpio
+          e2fsprogs
+          gawk
+          parted
+          util-linux
+        ]
+      );
     in
     ''
+      PATH=${binPath}:$PATH
+
+      if [[ -f /expand-on-first-boot ]]; then
+        # Figure out device names for the boot device and root filesystem.
+        rootPart=$(findmnt -nvo SOURCE /)
+        rootFsType=$(lsblk -npo FSTYPE "$rootPart")
+        firmwareDevice=$(lsblk -npo PKNAME $rootPart)
+        partNum=$(lsblk -npo MAJ:MIN "$rootPart" | awk -F: '{print $2}' | tr -d '[:space:]')
+
+        # Resize the root partition and the filesystem to fit the disk
+        echo ',+,' | sfdisk -N"$partNum" --no-reread "$firmwareDevice"
+
+        partprobe
+
+        if [[ $rootFsType == "btrfs" ]]; then
+          btrfs filesystem resize max /
+        else
+          resize2fs "$rootPart"
+        fi
+
+        rm -f /expand-on-first-boot
+      fi
+
       echo Extracting Asahi firmware...
       mkdir -p /tmp/.fwsetup/{esp,extracted}
 
       mount /dev/disk/by-partuuid/`cat /proc/device-tree/chosen/asahi,efi-system-partition` /tmp/.fwsetup/esp
-      ${asahi-fwextract}/bin/asahi-fwextract /tmp/.fwsetup/esp/asahi /tmp/.fwsetup/extracted
+      asahi-fwextract /tmp/.fwsetup/esp/asahi /tmp/.fwsetup/extracted
       umount /tmp/.fwsetup/esp
 
       pushd /tmp/.fwsetup/
-      cat /tmp/.fwsetup/extracted/firmware.cpio | ${cpio}/bin/cpio -id --quiet --no-absolute-filenames
+      cat /tmp/.fwsetup/extracted/firmware.cpio | cpio -id --quiet --no-absolute-filenames
       mkdir -p /lib/firmware
       mv vendorfw/* /lib/firmware
       popd
       rm -rf /tmp/.fwsetup
-
-      ${expandOnFirstBoot}
     '';
 
   hardware.asahi = {
     extractPeripheralFirmware = false; # Can't legally be included in the image.
-    experimentalGPUInstallMode = "overlay";
     useExperimentalGPUDriver = true;
-    setupAsahiSound = true;
     withRust = true;
   };
-
-  documentation.enable = false;
 
   fileSystems."/" = {
     device = "/dev/disk/by-label/nixos";
