@@ -11,7 +11,7 @@ let
   partInfo = import (image + "/partinfo.nix");
 
   installerDataJSON = lib.utils.generateInstallerData {
-    baseUrl = "https://pub-fde369a15aa048a4862bc80e0af2e747.r2.dev";
+    baseUrl = "https://pub-4b458b0cfaa1441eb321ecefef7d540e.r2.dev";
     inherit version;
     inherit (partInfo)
       espSize
@@ -53,6 +53,8 @@ stdenv.mkDerivation (finalAttrs: {
     mv "''${diskImage}2" package/root.img
 
     pushd package/ > /dev/null || exit 1
+
+    rm -rf esp/EFI/nixos/.extra-files
 
     echo -n 'creating compressed archive:'
     7z a -tzip -r -mx1 -bso0 ../"$pkgZip" ./.

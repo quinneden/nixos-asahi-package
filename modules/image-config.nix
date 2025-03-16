@@ -1,5 +1,6 @@
 {
   config,
+  fsType,
   lib,
   modulesPath,
   pkgs,
@@ -92,24 +93,51 @@
       rm -rf /tmp/.fwsetup
     '';
 
+  fileSystems = (
+    {
+      "/boot" = {
+        device = "/dev/disk/by-uuid/12CE-A600";
+        fsType = "vfat";
+        options = [
+          "fmask=0022"
+          "dmask=0022"
+        ];
+      };
+      "/" = {
+        device = "/dev/disk/by-label/nixos";
+        fsType = fsType;
+        options = lib.optionals (fsType == "btrfs") [
+          "compress=zstd"
+          "subvol=@"
+        ];
+      };
+    }
+    // (lib.optionalAttrs (fsType == "btrfs") {
+      "/home" = {
+        device = "/dev/disk/by-label/nixos";
+        fsType = fsType;
+        options = [
+          "compress=zstd"
+          "subvol=@home"
+        ];
+      };
+
+      "/nix" = {
+        device = "/dev/disk/by-label/nixos";
+        fsType = fsType;
+        options = [
+          "compress=zstd"
+          "noatime"
+          "subvol=@nix"
+        ];
+      };
+    })
+  );
+
   hardware.asahi = {
     extractPeripheralFirmware = false; # Can't legally be included in the image.
     useExperimentalGPUDriver = true;
     withRust = true;
-  };
-
-  fileSystems."/" = {
-    device = "/dev/disk/by-label/nixos";
-    fsType = "ext4";
-  };
-
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/12CE-A600";
-    fsType = "vfat";
-    options = [
-      "fmask=0022"
-      "dmask=0022"
-    ];
   };
 
   zramSwap = {
