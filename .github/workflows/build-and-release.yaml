@@ -22,7 +22,7 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build package
-        run: nix-fast-build --skip-cached --no-nom --out-link result
+        run: nix build -L .#installerPackage
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
