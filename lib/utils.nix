@@ -10,10 +10,10 @@
     }:
     let
       nixpkgsVersion = lib.versions.majorMinor lib.version;
-      pkgName = "nixos-asahi-" + version;
+      pkgName = "nixos-asahi-" + version + "-" + fsType;
     in
     lib.generators.toJSON { } {
-      name = "NixOS ${nixpkgsVersion} (${pkgName}-${fsType})";
+      name = "NixOS ${nixpkgsVersion} (${pkgName})";
       default_os_name = "NixOS";
 
       boot_object = "m1n1.bin";
