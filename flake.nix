@@ -58,11 +58,11 @@
           };
 
           btrfsImage = (imageConfig "btrfs").config.system.build.btrfsImage // {
-            passthru = { inherit imageConfig; };
+            passthru = { inherit (imageConfig "btrfs") config; };
           };
 
           ext4Image = (imageConfig "ext4").config.system.build.ext4Image // {
-            passthru = { inherit imageConfig; };
+            passthru = { inherit (imageConfig "ext4") config; };
           };
         };
 
