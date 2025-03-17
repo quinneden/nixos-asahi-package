@@ -12,12 +12,6 @@
   version,
 }:
 let
-  closureInfo = pkgs.closureInfo {
-    rootPaths = [ config.system.build.toplevel ];
-  };
-
-  fileName = "${name}.img";
-
   binPath = lib.makeBinPath (
     with pkgs;
     [
@@ -37,28 +31,21 @@ let
     ++ stdenv.initialPath
   );
 
-  partitionDiskScript = ''
-    parted --script $diskImage -- \
-      mklabel gpt \
-      mkpart ESP fat32 8MiB $bootSizeMiB \
-      set 1 boot on \
-      align-check optimal 1 \
-      mkpart primary ${fsType} $bootSizeMiB 100% \
-      align-check optimal 2 \
-      print
-
-    sgdisk \
-      --disk-guid=97FD5997-D90B-4AA3-8D16-C1723AEA73C \
-      --partition-guid=1:1C06F03B-704E-4657-B9CD-681A087A2FDC \
-      --partition-guid=2:${uuid} \
-      $diskImage
-  '';
-
-  label = "nixos";
-
   blockSize = toString (4 * 1024); # ext4fs/btrfs block size (not block device sector size)
 
-  installToRoot = ''
+  closureInfo = pkgs.closureInfo {
+    rootPaths = [ config.system.build.toplevel ];
+  };
+
+  fileName = "${name}.img";
+  label = "nixos";
+
+  prepareStagingRoot = ''
+    export PATH=${binPath}:$PATH
+
+    root="$PWD/root"
+    mkdir -p $root
+
     export HOME=$TMPDIR
 
     # Provide a Nix database so that nixos-install can copy closures.
@@ -75,9 +62,7 @@ let
     touch $root/expand-on-first-boot
   '';
 
-  prepareImage = ''
-    export PATH=${binPath}
-
+  partitionImage = ''
     # Yes, mkfs.ext4 takes different units in different contexts. Fun.
     sectorsToKilobytes() {
       echo $(( ( "$1" * 512 ) / 1024 ))
@@ -95,8 +80,7 @@ let
     }
     mebibyte=$(( 1024 * 1024 ))
     # Approximative percentage of reserved space in an ext4 fs over 512MiB.
-    # 0.05208587646484375
-    #  × 1000, integer part: 52
+    # 0.05208587646484375 × 1000, integer part: 52
     compute_fudge() {
       echo $(( $1 * 52 / 1000 ))
     }
@@ -105,11 +89,6 @@ let
     }
 
     mkdir $out
-
-    root="$PWD/root"
-    mkdir -p $root
-
-    ${installToRoot}
 
     diskImage=nixos.raw
 
@@ -164,25 +143,84 @@ let
         ''
     }
 
-    ${partitionDiskScript}
+    parted --script $diskImage -- \
+      mklabel gpt \
+      mkpart ESP fat32 8MiB $bootSizeMiB \
+      set 1 boot on \
+      align-check optimal 1 \
+      mkpart primary ${fsType} $bootSizeMiB 100% \
+      align-check optimal 2 \
+      print
 
-    ${lib.optionalString (fsType == "ext4") ''
-      eval $(partx $diskImage -o START,SECTORS --nr 2 --pairs)
-      mkfs.${fsType} -b ${blockSize} -F -L ${label} $diskImage -E offset=$(sectorsToBytes $START) $(sectorsToKilobytes $SECTORS)K
-
-      echo "copying staging root to image..."
-      cptofs -p -P 2 \
-            -t ${fsType} \
-            -i $diskImage \
-            $root/* / ||
-        (echo >&2 "ERROR: cptofs failed. diskSize might be too small for closure."; exit 1)
-    ''}
+    sgdisk \
+      --disk-guid=97FD5997-D90B-4AA3-8D16-C1723AEA73C \
+      --partition-guid=1:1C06F03B-704E-4657-B9CD-681A087A2FDC \
+      --partition-guid=2:${uuid} \
+      $diskImage
   '';
 
-  moveImage = ''
-    mv $diskImage $out/${fileName}
-    diskImage=$out/${fileName}
+  copyStagingRootToImage = ''
+    export PATH=${binPath}:$PATH
+
+    root=$PWD/root
+
+    ${
+      {
+        btrfs = ''
+          {
+            cptofs -p -P 2 -t btrfs -i $diskImage $root/{etc,expand-on-first-boot} /@
+            cptofs -p -P 2 -t btrfs -i $diskImage $root/nix/* /@nix
+          } || (echo >&2 "ERROR: cptofs failed. diskSize might be too small for closure."; exit 1)
+        '';
+        ext4 = ''
+          cptofs -p -P 2 -t ${fsType} -i $diskImage $root/* / ||
+            (echo >&2 "ERROR: cptofs failed. diskSize might be too small for closure."; exit 1)
+        '';
+      }
+      .${fsType}
+    }
+
+    mv $diskImage $out/nixos.raw
+    diskImage=$out/nixos.raw
   '';
+
+  buildImageStage1 = pkgs.vmTools.runInLinuxVM (
+    pkgs.runCommand "prepare-image"
+      {
+        preVM = prepareStagingRoot + partitionImage;
+        postVM = copyStagingRootToImage;
+        inherit memSize;
+      }
+      ''
+        export PATH=${binPath}:$PATH
+
+        rootDisk=/dev/vda2
+
+        ${
+          {
+            btrfs = ''
+              mkfs.btrfs -U ${uuid} -L ${label} -s ${blockSize} $rootDisk
+
+              mountPoint=/mnt
+              mkdir $mountPoint
+              mount $rootDisk $mountPoint
+
+              btrfs filesystem resize max $mountPoint
+
+              btrfs subvolume create $mountPoint/@
+              btrfs subvolume create $mountPoint/@home
+              btrfs subvolume create $mountPoint/@nix
+
+              umount $mountPoint
+            '';
+            ext4 = ''
+              mkfs.${fsType} -b ${blockSize} -F -L ${label} $rootDisk
+            '';
+          }
+          .${fsType}
+        }
+      ''
+  );
 
   makePartInfo = ''
     PATH=${pkgs.util-linux}/bin:$PATH
@@ -191,29 +229,25 @@ let
     printf '{ espSize = %s; rootSize = %s; fsType = "${fsType}"; }' $partSizes > $out/partinfo.nix
   '';
 
-  buildImage = pkgs.vmTools.runInLinuxVM (
+  moveImage = ''
+    mkdir -p $out
+    mv $diskImage $out/${fileName}
+  '';
+
+  buildImageStage2 = pkgs.vmTools.runInLinuxVM (
     pkgs.runCommand name
       {
-        preVM = prepareImage;
-        buildInputs =
-          with pkgs;
-          [
-            util-linux
-            dosfstools
-          ]
-          ++ (lib.optional (fsType == "btrfs") btrfs-progs)
-          ++ (lib.optional (fsType == "ext4") e2fsprogs);
-        postVM = moveImage + makePartInfo;
+        preVM = ''
+          install -m644 -t ./. ${buildImageStage1}/nixos.raw
+          diskImage=nixos.raw
+        '';
+        postVM = makePartInfo + moveImage;
         inherit memSize;
       }
       ''
         export PATH=${binPath}:$PATH
 
         rootDisk=/dev/vda2
-
-        ${lib.optionalString (fsType == "btrfs") ''
-          mkfs.btrfs -U ${uuid} -L ${label} -s ${blockSize} $rootDisk
-        ''}
 
         # It is necessary to set root filesystem unique identifier in advance, otherwise
         # bootloader might get the wrong one and fail to boot.
@@ -228,27 +262,22 @@ let
 
         mountPoint=/mnt
         mkdir $mountPoint
-        mount $rootDisk $mountPoint
 
-        ${lib.optionalString (fsType == "btrfs") ''
-          btrfs filesystem resize max $mountPoint
+        ${
+          {
+            btrfs = ''
+              mount -o compress=zstd,subvol=@ $rootDisk $mountPoint
+              mkdir -p $mountPoint/{home,nix}
 
-          btrfs subvolume create $mountPoint/@
-          btrfs subvolume create $mountPoint/@home
-          btrfs subvolume create $mountPoint/@nix
-
-          umount $mountPoint
-
-          mount -o compress=zstd,subvol=@ $rootDisk $mountPoint
-          mkdir -p $mountPoint/{home,nix}
-
-          mount -o compress=zstd,subvol=@home $rootDisk $mountPoint/home
-          mount -o compress=zstd,noatime,subvol=@nix $rootDisk $mountPoint/nix
-
-          root=$mountPoint
-
-          ${installToRoot}
-        ''}
+              mount -o compress=zstd,subvol=@home $rootDisk $mountPoint/home
+              mount -o compress=zstd,noatime,subvol=@nix $rootDisk $mountPoint/nix
+            '';
+            ext4 = ''
+              mount $rootDisk $mountPoint
+            '';
+          }
+          .${fsType}
+        }
 
         # Create the ESP and mount it. Unlike e2fsprogs, mkfs.vfat doesn't support an
         # '-E offset=X' option, so we can't do this outside the VM.
@@ -289,4 +318,4 @@ let
       ''
   );
 in
-buildImage
+buildImageStage2
