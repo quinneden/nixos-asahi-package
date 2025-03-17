@@ -236,7 +236,7 @@ let
   '';
 
   buildImageStage2 = pkgs.vmTools.runInLinuxVM (
-    pkgs.runCommand "${name}-stage2"
+    pkgs.runCommand name
       {
         preVM = ''
           install -m644 -t ./. ${buildImageStage1}/nixos.raw
