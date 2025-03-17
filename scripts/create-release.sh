@@ -40,7 +40,7 @@ echo -e "{\n  version = \"$cur_version\";\n  released = true;\n}" > version.nix
 # Commit and tag the release
 git commit -am "release: v$cur_version"
 git tag -a "v$cur_version" -m "release: v$cur_version"
-git tag -d "latest"
+git tag -d "latest" || true
 git tag -a "latest" -m "release: v$cur_version"
 
 echo -e "{\n  version = \"$new_version\";\n  released = false;\n}" > version.nix
