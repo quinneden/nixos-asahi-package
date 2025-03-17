@@ -1,4 +1,4 @@
 {
-  version = "0.1.1";
-  released = true;
+  version = "0.1.2";
+  released = false;
 }
