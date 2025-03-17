@@ -2,10 +2,14 @@ import boto3
 import os
 from botocore.config import Config
 
+bucket_name = os.getenv("BUCKET_NAME")
 pkg_zip = os.getenv("pkgZip")
 pkg_data = "installer_data.json"
 
-obj_list = [pkg_zip, pkg_data]
+object_type_set = {
+    pkg_data: "text/plain",
+    pkg_zip: "application/octet-stream"
+}
 
 s3 = boto3.client(
     "s3",
@@ -22,21 +26,17 @@ transfer_config = boto3.s3.transfer.TransferConfig(
 )
 
 
-def upload_to_r2(file):
-    content_type = (
-        "text/plain" if file.endswith(
-            ".json") else "application/octet-stream"
-    )
+def upload_to_r2(file, content_type):
     prefix = "data" if file.endswith(".json") else "os"
     with open(file, "rb") as fb:
         s3.upload_fileobj(
             fb,
             ExtraArgs={"ContentType": content_type},
-            Bucket=os.getenv("BUCKET_NAME"),
+            Bucket=bucket_name,
             Key=os.path.join(prefix, file),
             Config=transfer_config,
         )
 
 
-for obj in obj_list:
-    upload_to_r2(obj)
+for obj, ctype in object_type_set:
+    upload_to_r2(obj, ctype)
