@@ -10,7 +10,7 @@
 with lib;
 
 let
-  curVer = version;
+  curVer = removeSuffix "-dirty" version;
   majorInt = toInt (versions.major curVer);
   majorMinor = versions.majorMinor curVer;
   minorInt = toInt (versions.minor curVer);
