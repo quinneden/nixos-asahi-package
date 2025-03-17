@@ -41,7 +41,8 @@ writeShellApplication {
     coreutils
   ];
   text = ''
-    version="${newVer}"
+    cur_version="${curVer}"
+    new_version="${newVer}"
     ${readFile ./create-release.sh}
   '';
 }
