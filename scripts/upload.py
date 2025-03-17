@@ -1,15 +1,12 @@
-import boto3
 import os
+import boto3
 from botocore.config import Config
 
 bucket_name = os.getenv("BUCKET_NAME")
 pkg_zip = os.getenv("pkgZip")
 pkg_data = "installer_data.json"
 
-object_type_set = {
-    pkg_data: "text/plain",
-    pkg_zip: "application/octet-stream"
-}
+object_type_set = {pkg_data: "text/plain", pkg_zip: "application/octet-stream"}
 
 s3 = boto3.client(
     "s3",
@@ -38,5 +35,5 @@ def upload_to_r2(file, content_type):
         )
 
 
-for obj, ctype in object_type_set:
+for obj, ctype in object_type_set.items():
     upload_to_r2(obj, ctype)
