@@ -10,23 +10,16 @@
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  system.build = lib.genAttrs [ "btrfsImage" "ext4Image" ] (
-    imageType:
-    let
-      fsType = lib.removeSuffix "Image" imageType;
-    in
-    import ../lib/make-disk-image.nix {
-      copyConfig = "${../nixos}";
-      fsType = fsType;
-      inherit
-        config
-        lib
-        pkgs
-        version
-        ;
-
-    }
-  );
+  system.build."${fsType}Image" = import ../lib/make-disk-image.nix {
+    copyConfig = "${./flake}";
+    inherit
+      config
+      fsType
+      lib
+      pkgs
+      version
+      ;
+  };
 
   boot = {
     initrd.availableKernelModules = [
@@ -166,7 +159,10 @@
     };
   };
 
-  environment.systemPackages = [ ];
+  environment.systemPackages = with pkgs; [
+    asahi-bless
+    git
+  ];
 
   programs.git.enable = true;
 

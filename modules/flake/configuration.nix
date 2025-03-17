@@ -1,13 +1,14 @@
 {
-  config,
   inputs,
-  lib,
   pkgs,
   ...
 }:
 {
   imports = [
     inputs.nixos-apple-silicon.nixosModules.default
+
+    # Run `sudo nixos-generate-config --show-hardware-config | tee hardware-configuration.nix`
+    # and uncomment this line.
     # ./hardware-configuration.nix
   ];
 
@@ -23,18 +24,10 @@
   };
 
   hardware.asahi = {
-    useExperimentalGPUDriver = true;
+    peripheralFirmwareDirectory = /boot/asahi;
     setupAsahiSound = true;
+    useExperimentalGPUDriver = true;
     withRust = true;
-  };
-
-  fileSystems = {
-    "/".options = [ "compress=zstd" ];
-    "/home".options = [ "compress=zstd" ];
-    "/nix".options = [
-      "compress=zstd"
-      "noatime"
-    ];
   };
 
   zramSwap = {

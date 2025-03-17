@@ -287,7 +287,6 @@ let
         mount /dev/vda1 /mnt/boot
 
         # Install a configuration.nix
-        mkdir -p /mnt/etc/nixos
         ${lib.optionalString (copyConfig != null) ''
           cp -r ${copyConfig} /mnt/etc/nixos
           pushd /mnt/etc/nixos >/dev/null
