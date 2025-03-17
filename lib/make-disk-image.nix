@@ -185,7 +185,7 @@ let
   '';
 
   buildImageStage1 = pkgs.vmTools.runInLinuxVM (
-    pkgs.runCommand "prepare-image"
+    pkgs.runCommand "${name}-stage1"
       {
         preVM = prepareStagingRoot + partitionImage;
         postVM = copyStagingRootToImage;
@@ -232,16 +232,17 @@ let
   moveImage = ''
     mkdir -p $out
     mv $diskImage $out/${fileName}
+    diskImage=$out/${fileName}
   '';
 
   buildImageStage2 = pkgs.vmTools.runInLinuxVM (
-    pkgs.runCommand name
+    pkgs.runCommand "${name}-stage2"
       {
         preVM = ''
           install -m644 -t ./. ${buildImageStage1}/nixos.raw
           diskImage=nixos.raw
         '';
-        postVM = makePartInfo + moveImage;
+        postVM = moveImage + makePartInfo;
         inherit memSize;
       }
       ''
