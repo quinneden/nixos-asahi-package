@@ -232,6 +232,7 @@ let
   moveImage = ''
     mkdir -p $out
     mv $diskImage $out/${fileName}
+    diskImage=$out/${fileName}
   '';
 
   buildImageStage2 = pkgs.vmTools.runInLinuxVM (
@@ -241,7 +242,7 @@ let
           install -m644 -t ./. ${buildImageStage1}/nixos.raw
           diskImage=nixos.raw
         '';
-        postVM = makePartInfo + moveImage;
+        postVM = moveImage + makePartInfo;
         inherit memSize;
       }
       ''
