@@ -103,14 +103,18 @@
           "dmask=0022"
         ];
       };
-      "/" = {
-        device = "/dev/disk/by-label/nixos";
-        fsType = fsType;
-        options = lib.optionals (fsType == "btrfs") [
-          "compress=zstd"
-          "subvol=@"
-        ];
-      };
+      "/" = (
+        {
+          device = "/dev/disk/by-label/nixos";
+          fsType = fsType;
+        }
+        // lib.optionalAttrs (fsType == "btrfs") {
+          options = [
+            "compress=zstd"
+            "subvol=@"
+          ];
+        }
+      );
     }
     // (lib.optionalAttrs (fsType == "btrfs") {
       "/home" = {
