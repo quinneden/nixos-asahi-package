@@ -2,7 +2,7 @@
 
 A nix flake containing package expressions for a NixOS disk image utiziling NixOS modules from [nixos-apple-silicon](https://github.com/tpwrules/nixos-apple-silicon) to enable compatibility with Apple Silicon hardware, and a zipfile of the disk image which is intended to be used as a package payload with the [asahi-installer](https://github.com/asahilinux/asahi-installer), so that the user can bootstrap a NixOS install onto an Apple Silicon mac without the use of live installation media. 
 
-#### CAUTION: This project is a work in progress. Code is subject to change, packages probably are not stable enough for use on non-test machines (yet). Contributions and issues are appreciated.
+#### CAUTION: This project is a work in progress. Code is subject to changes. Contributions and issues are appreciated.
 
 ## Install using prebuilt image
 
