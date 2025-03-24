@@ -17,16 +17,16 @@
       ...
     }@inputs:
     let
-      forEachSystem = lib.genAttrs [
-        "aarch64-darwin"
-        "aarch64-linux"
-      ];
+      forEachSystem =
+        f:
+        lib.genAttrs [
+          "aarch64-darwin"
+          "aarch64-linux"
+        ] (system: f { pkgs = import nixpkgs { inherit system; }; });
 
       lib = nixpkgs.lib.extend (
         self: super: { utils = import ./lib/utils.nix { inherit (nixpkgs) lib; }; }
       );
-
-      pkgs = import nixpkgs { system = "aarch64-linux"; };
 
       versionInfo = import ./version.nix;
       version = versionInfo.version + (lib.optionalString (!versionInfo.released) "-dirty");
@@ -34,6 +34,8 @@
     {
       packages.aarch64-linux =
         let
+          pkgs = import nixpkgs { system = "aarch64-linux"; };
+
           imageConfig =
             fsType:
             lib.nixosSystem rec {
@@ -67,10 +69,7 @@
         };
 
       apps = forEachSystem (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
+        { pkgs }:
         {
           create-release = {
             type = "app";
@@ -89,10 +88,7 @@
       );
 
       devShells = forEachSystem (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
+        { pkgs }:
         rec {
           default = boto3;
 
@@ -106,11 +102,8 @@
         }
       );
 
-      checks.aarch64-linux = {
-        inherit (self.packages.aarch64-linux) installerPackage;
-      };
-
-      formatter = forEachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+      checks.aarch64-linux = { inherit (self.packages.aarch64-linux) installerPackage; };
+      formatter = forEachSystem ({ pkgs }: pkgs.nixfmt-rfc-style);
     };
 
   nixConfig = {
