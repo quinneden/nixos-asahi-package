@@ -40,6 +40,6 @@ writeShellApplication {
   text = ''
     cur_version="${curVer}"; export cur_version
     new_version="${newVer}"; export new_version
-    bash -c ${./create-release.sh}
+    bash ${./create-release.sh}
   '';
 }
