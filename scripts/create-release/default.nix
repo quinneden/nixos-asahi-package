@@ -1,14 +1,11 @@
 {
   bash,
-  coreutils,
   git,
   lib,
   version,
   writeShellApplication,
 }:
-
 with lib;
-
 let
   curVer = removeSuffix "-dirty" version;
   majorInt = toInt (versions.major curVer);
@@ -32,17 +29,17 @@ let
         "0"
       ]);
 in
-
 writeShellApplication {
   name = "create-release";
+
   runtimeInputs = [
     bash
     git
-    coreutils
   ];
+
   text = ''
-    cur_version="${curVer}"
-    new_version="${newVer}"
-    ${readFile ./create-release.sh}
+    cur_version="${curVer}"; export cur_version
+    new_version="${newVer}"; export new_version
+    bash -c ${./create-release.sh}
   '';
 }
