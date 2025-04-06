@@ -32,7 +32,7 @@ nix build .#packages.aarch64-linux.btrfsImage # or .ext4Image
 # builds just the disk image
 ```
 
-By default, `installerPackage` consumes `btrfsImage` as the image used to build the installer package, `ext4Image` could be used in its place.
+By default, `installerPackage` consumes `btrfsImage` as the image used to build the installer package but `ext4Image` could be used in its place.
 
 ```nix
 # ...
