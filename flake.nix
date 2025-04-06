@@ -73,16 +73,12 @@
         {
           create-release = {
             type = "app";
-            program = lib.getExe (pkgs.callPackage ./scripts/create-release.nix { inherit version; });
+            program = lib.getExe (pkgs.callPackage ./scripts/create-release { inherit version; });
           };
 
           upload = {
             type = "app";
-            program = lib.getExe (
-              pkgs.callPackage ./scripts/upload.nix {
-                inherit (self.packages.aarch64-linux) installerPackage;
-              }
-            );
+            program = lib.getExe (pkgs.callPackage ./scripts/upload { });
           };
         }
       );
@@ -94,7 +90,15 @@
 
           boto3 = pkgs.mkShell {
             name = "boto3";
-            packages = [ (pkgs.python3.withPackages (ps: [ ps.boto3 ])) ];
+            packages = [
+              (pkgs.python3.withPackages (
+                ps: with ps; [
+                  boto3
+                  requests
+                  tqdm
+                ]
+              ))
+            ];
             shellHook = ''
               source .env || true
             '';
