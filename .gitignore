@@ -1,7 +1,9 @@
 .DS_Store
 .direnv
 .env
+.env.*
 .ropeproject
-result
-**/*.img
-**/*.zip
+result*
+*.img
+*.zip
+installer_data*.json
