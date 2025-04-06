@@ -17,7 +17,7 @@ def append_installer_data(idata, url=None):
     try:
         os_list["os_list"].append(idata)
         return os_list
-    except json.JSONEncodeError as e:
+    except TypeError as e:
         print(f"Error appending installer data: {e}")
 
 
