@@ -27,8 +27,8 @@ if true; then
 
   export VERSION_FLAG=https://cdn.asahilinux.org/installer/latest
   export INSTALLER_BASE=https://cdn.asahilinux.org/installer
-  export INSTALLER_DATA="${INSTALLER_DATA:-https://cdn.qeden.systems/data/installer_data.json}"
-  export REPO_BASE=https://cdn.qeden.systems
+  export INSTALLER_DATA=https://cdn.qeden.dev/data/installer_data.json
+  export REPO_BASE=https://cdn.qeden.dev
 
   TMP=/tmp/asahi-install
 
