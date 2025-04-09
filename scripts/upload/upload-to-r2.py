@@ -14,11 +14,13 @@ from tqdm import tqdm
 def append_installer_data(idata, url=None):
     response = requests.get(url)
     os_list = response.json() if response.status_code == 200 else {"os_list": []}
+    with open(idata, "r") as data:
+        new_data = json.load(data)
     try:
-        os_list["os_list"].append(idata)
+        os_list["os_list"].append(new_data)
         return os_list
     except TypeError as e:
-        print(f"Error appending installer data: {e}")
+        print(f"Error appending installer data: {str(e)}")
 
 
 def upload_to_r2(file: str, content_type: str):
@@ -47,22 +49,18 @@ def upload_to_r2(file: str, content_type: str):
             )
 
 
-def main():
+if __name__ == "__main__":
+    pkg_zip = os.getenv("PKG_ZIP")
+    pkg_data = os.getenv("PKG_DATA")
+    merged_data = append_installer_data(
+        pkg_data, url="https://cdn.qeden.systems/data/installer_data.json"
+    )
+
     with tempfile.TemporaryDirectory() as temp_dir:
         os.chdir(temp_dir)
-        pkg_data = os.getenv("PKG_DATA")
-        pkg_zip = os.getenv("PKG_ZIP")
-        new_idata = append_installer_data(
-            pkg_data, url="https://cdn.qeden.systems/data/installer_data.json"
-        )
 
-        with open("installer_data.json", "w") as f:
-            json.dump(new_idata, f)
+        with open("installer_data.json", "w") as file:
+            json.dump(merged_data, file)
 
         upload_to_r2("installer_data.json", "text/plain")
         upload_to_r2(pkg_zip, "application/octet-stream")
-
-
-if __name__ == "__main__":
-    main()
-    exit(0)
