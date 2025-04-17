@@ -11,7 +11,7 @@ let
   partInfo = import (image + "/partinfo.nix");
 
   installerDataJSON = lib.utils.generateInstallerData {
-    baseUrl = "https://pub-4b458b0cfaa1441eb321ecefef7d540e.r2.dev";
+    baseUrl = "https://cdn.qeden.dev";
     inherit version;
     inherit (partInfo)
       espSize

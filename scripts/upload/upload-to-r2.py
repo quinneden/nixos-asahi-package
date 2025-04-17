@@ -53,7 +53,7 @@ if __name__ == "__main__":
     pkg_zip = os.getenv("PKG_ZIP")
     pkg_data = os.getenv("PKG_DATA")
     merged_data = append_installer_data(
-        pkg_data, url="https://cdn.qeden.systems/data/installer_data.json"
+        pkg_data, url="https://cdn.qeden.dev/data/installer_data.json"
     )
 
     with tempfile.TemporaryDirectory() as temp_dir:
