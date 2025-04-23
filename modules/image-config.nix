@@ -167,19 +167,19 @@
   programs.git.enable = true;
 
   services = {
-    getty.autologinUser = "nixos";
+    getty.autologinUser = "root";
     openssh.enable = true;
   };
 
   users.mutableUsers = true;
 
-  users.users.nixos = {
-    isNormalUser = true;
-    initialHashedPassword = "";
-    extraGroups = [ "wheel" ];
-  };
+  # users.users.nixos = {
+  #   isNormalUser = true;
+  #   initialHashedPassword = "";
+  #   extraGroups = [ "wheel" ];
+  # };
 
-  security.sudo.wheelNeedsPassword = false;
+  # security.sudo.wheelNeedsPassword = false;
 
   system.stateVersion = "25.05";
 }
