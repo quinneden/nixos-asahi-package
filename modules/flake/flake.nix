@@ -14,12 +14,7 @@
     {
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
-
-        specialArgs = {
-          inherit (nixpkgs) lib;
-          inherit inputs;
-        };
-
+        specialArgs = { inherit inputs; };
         modules = [ ./configuration.nix ];
       };
     };
