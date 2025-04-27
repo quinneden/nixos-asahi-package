@@ -10,11 +10,11 @@ A package that enables easy installation of NixOS onto bare metal Apple Silicon 
 Using the installer script:
 
 ```bash
-curl -sL -o install-nixos.sh "https://qeden.dev/install"
+curl -sL -o install-nixos.sh "https://nixos-asahi.qeden.dev/install"
 sh ./install-nixos.sh
 
 # or if you're feeling reckless
-sh <(curl -sL https://qeden.dev/install)
+sh <(curl -sL "https://nixos-asahi.qeden.dev/install")
 ```
 
 This is a modified copy of the bootstrap script from the [asahi-installer](https://github.com/asahilinux/asahi-installer) repository. Be sure to follow the instructions carefully, as it is possible a mistake could leave your system in an unbootable state.
