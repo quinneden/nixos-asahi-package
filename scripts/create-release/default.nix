@@ -7,13 +7,13 @@
 }:
 with lib;
 let
-  curVer = removeSuffix "-dirty" version;
-  majorInt = toInt (versions.major curVer);
-  majorMinor = versions.majorMinor curVer;
-  minorInt = toInt (versions.minor curVer);
-  patchInt = toInt (versions.patch curVer);
+  thisVer = removeSuffix "-dirty" version;
+  majorInt = toInt (versions.major thisVer);
+  majorMinor = versions.majorMinor thisVer;
+  minorInt = toInt (versions.minor thisVer);
+  patchInt = toInt (versions.patch thisVer);
 
-  newVer =
+  nextVer =
     if (patchInt != 9) then
       majorMinor + "." + (toString (patchInt + 1))
     else if (minorInt != 9) then
@@ -31,6 +31,7 @@ let
 in
 writeShellApplication {
   name = "create-release";
+  version = thisVer;
 
   runtimeInputs = [
     bash
@@ -38,8 +39,8 @@ writeShellApplication {
   ];
 
   text = ''
-    cur_version="${curVer}"; export cur_version
-    new_version="${newVer}"; export new_version
+    this_version="${thisVer}"; export cur_version
+    next_version="${nextVer}"; export new_version
     bash ${./create-release.sh}
   '';
 }
