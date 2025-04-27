@@ -16,6 +16,7 @@ if [[ ! "$cur_version" =~ $semver_regex ]]; then
   exit 1
 fi
 
+# Check if we're running on the main branch
 if [[ "$(git symbolic-ref --short HEAD)" != "main" ]]; then
   echo "must be on main branch" >&2
   exit 1
@@ -44,7 +45,7 @@ git tag -d "latest" || true
 git tag -a "latest" -m "release: v$cur_version"
 
 echo -e "{\n  version = \"$new_version\";\n  released = false;\n}" > version.nix
-git commit -am "release: reset released flag"
+git commit -am "chore(release): reset released flag"
 
 echo "Release was prepared successfully!"
 echo "To push the release, run the following command:"
