@@ -52,14 +52,14 @@ stdenv.mkDerivation (finalAttrs: {
     7z x -o"package/esp" "''${diskImage}1"
     mv "''${diskImage}2" package/root.img
 
-    pushd package/ > /dev/null || exit 1
+    pushd package/ > /dev/null
 
     rm -rf esp/EFI/nixos/.extra-files
 
     echo -n 'creating compressed archive:'
     7z a -tzip -r -mx1 -bso0 ../"$pkgZip" ./.
 
-    popd > /dev/null || exit 1
+    popd > /dev/null
 
     jq <<< ${lib.escapeShellArg installerDataJSON} > "$pkgData"
 
