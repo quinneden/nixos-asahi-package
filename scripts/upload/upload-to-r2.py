@@ -13,7 +13,9 @@ from tqdm import tqdm
 
 def append_installer_data(idata, url=None):
     response = requests.get(url)
-    os_list = response.json() if response.status_code == 200 else {"os_list": []}
+    os_list = (
+        response.json() if response.status_code == 200 else {"os_list": []}
+    )
     with open(idata, "r") as data:
         new_data = json.load(data)
     try:
@@ -38,7 +40,9 @@ def upload_to_r2(file: str, content_type: str):
     object_prefix = "data" if file_name.endswith(".json") else "os"
     object_key = f"{object_prefix}/{file_name}"
 
-    with tqdm(total=file_size, desc=file_name, unit="B", unit_scale=True) as progress:
+    with tqdm(
+        total=file_size, desc=file_name, unit="B", unit_scale=True
+    ) as progress:
         with open(file, "rb") as file_bytes:
             s3_client.upload_fileobj(
                 file_bytes,
