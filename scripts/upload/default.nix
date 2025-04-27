@@ -41,8 +41,8 @@ writeShellApplication {
       echo "error: source directory not specified or doesn't exist" >&2
       exit 1
     else
-      PKG_DATA="$(find "$src_dir" -follow -name "installer_data-*.json")"; export PKG_DATA
-      PKG_ZIP="$(find "$src_dir" -follow -name "nixos-asahi-*.zip")"; export PKG_ZIP
+      PKG_DATA=$(find "$src_dir" -follow -name "installer_data-*.json"); export PKG_DATA
+      PKG_ZIP=$(find "$src_dir" -follow -name "nixos-asahi-*.zip"); export PKG_ZIP
     fi
 
     if [[ ! -f $PKG_DATA || ! -f $PKG_ZIP ]]; then

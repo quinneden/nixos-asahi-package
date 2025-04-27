@@ -225,7 +225,6 @@ let
   makePartInfo = ''
     PATH=${pkgs.util-linux}/bin:$PATH
     partSizes=$(partx $diskImage -rgo SIZE -b --nr 1:2)
-
     printf '{ espSize = %s; rootSize = %s; fsType = "${fsType}"; }' $partSizes > $out/partinfo.nix
   '';
 
