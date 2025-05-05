@@ -13,52 +13,31 @@
   outputs =
     { nixpkgs, self, ... }@inputs:
     let
-      forEachSystem =
-        f:
-        lib.genAttrs [
-          "aarch64-darwin"
-          "aarch64-linux"
-        ] (system: f { pkgs = import nixpkgs { inherit system; }; });
-
-      lib = nixpkgs.lib.extend (
-        self: super: { utils = import ./lib/utils.nix { inherit (nixpkgs) lib; }; }
-      );
+      inherit (nixpkgs) lib;
 
       versionInfo = import ./version.nix;
       version = versionInfo.version + (lib.optionalString (!versionInfo.released) "-dirty");
+
+      forEachSystem =
+        f:
+        lib.genAttrs [ "aarch64-darwin" "aarch64-linux" ] (
+          system: f { pkgs = import nixpkgs { inherit system; }; }
+        );
+
+      buildPackages = import ./lib/build-packages.nix {
+        inherit
+          inputs
+          lib
+          nixpkgs
+          version
+          ;
+      };
     in
     {
-      packages.aarch64-linux =
-        let
-          pkgs = import nixpkgs { system = "aarch64-linux"; };
-
-          imageConfig =
-            fsType:
-            lib.nixosSystem {
-              system = "aarch64-linux";
-
-              specialArgs = {
-                modulesPath = nixpkgs + "/nixos/modules";
-                inherit fsType inputs version;
-              };
-
-              modules = [ ./modules/image-config.nix ];
-            };
-        in
-        rec {
-          installerPackage = pkgs.callPackage ./package.nix {
-            inherit lib version;
-            image = btrfsImage;
-          };
-
-          btrfsImage = (imageConfig "btrfs").config.system.build.btrfsImage // {
-            passthru = { inherit (imageConfig "btrfs") config; };
-          };
-
-          ext4Image = (imageConfig "ext4").config.system.build.ext4Image // {
-            passthru = { inherit (imageConfig "ext4") config; };
-          };
-        };
+      packages.aarch64-linux = buildPackages.buildVariants [
+        "btrfs"
+        "ext4"
+      ];
 
       apps = forEachSystem (
         { pkgs }:
@@ -98,7 +77,6 @@
         }
       );
 
-      checks.aarch64-linux = { inherit (self.packages.aarch64-linux) installerPackage; };
       formatter = forEachSystem ({ pkgs }: pkgs.nixfmt-rfc-style);
     };
 

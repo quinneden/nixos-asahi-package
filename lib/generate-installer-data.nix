@@ -2,15 +2,13 @@
 {
   generateInstallerData =
     {
-      baseUrl ? "https://pub-4b458b0cfaa1441eb321ecefef7d540e.r2.dev",
-      espSize,
-      fsType,
-      rootSize,
-      version ? (import ./version.nix).version,
+      baseUrl,
+      partInfo,
+      version,
     }:
     let
       nixpkgsVersion = lib.versions.majorMinor lib.version;
-      pkgName = "nixos-asahi-" + version + "-" + fsType;
+      pkgName = "nixos-asahi-" + version + "-" + partInfo.fsType;
     in
     lib.generators.toJSON { } {
       name = "NixOS ${nixpkgsVersion} (${pkgName})";
@@ -31,7 +29,7 @@
         {
           name = "EFI";
           type = "EFI";
-          size = "${toString espSize}B";
+          size = "${toString partInfo.espSize}B";
           format = "fat";
           volume_id = "0x12cea600";
           copy_firmware = true;
@@ -41,7 +39,7 @@
         {
           name = "Root";
           type = "Linux";
-          size = "${toString rootSize}B";
+          size = "${toString partInfo.rootSize}B";
           expand = true;
           image = "root.img";
         }
