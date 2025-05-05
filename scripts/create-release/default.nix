@@ -8,23 +8,27 @@
 with lib;
 let
   thisVer = removeSuffix "-dirty" version;
-  majorInt = toInt (versions.major thisVer);
-  majorMinor = versions.majorMinor thisVer;
-  minorInt = toInt (versions.minor thisVer);
-  patchInt = toInt (versions.patch thisVer);
+
+  major = toInt (versions.major thisVer);
+  minor = toInt (versions.minor thisVer);
+  patch = toInt (versions.patch thisVer);
 
   nextVer =
-    if (patchInt != 9) then
-      majorMinor + "." + (toString (patchInt + 1))
-    else if (minorInt != 9) then
+    if (patch != 9) then
       (concatStringsSep "." [
-        (toString majorInt)
-        (toString (minorInt + 1))
+        (toString major)
+        (toString minor)
+        (toString (patch + 1))
+      ])
+    else if (minor != 9) then
+      (concatStringsSep "." [
+        (toString major)
+        (toString (minor + 1))
         "0"
       ])
     else
       (concatStringsSep "." [
-        (toString (majorInt + 1))
+        (toString (major + 1))
         "0"
         "0"
       ]);
