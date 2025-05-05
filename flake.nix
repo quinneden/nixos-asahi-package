@@ -1,5 +1,5 @@
 {
-  description = "NixOS package for the Asahi-installer.";
+  description = "NixOS package for the Asahi-installer";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -11,11 +11,7 @@
   };
 
   outputs =
-    {
-      nixpkgs,
-      self,
-      ...
-    }@inputs:
+    { nixpkgs, self, ... }@inputs:
     let
       forEachSystem =
         f:
