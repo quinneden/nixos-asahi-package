@@ -39,8 +39,8 @@ writeShellApplication {
   ];
 
   text = ''
-    this_version="${thisVer}"; export cur_version
-    next_version="${nextVer}"; export new_version
+    this_version="${thisVer}"; export this_version
+    next_version="${nextVer}"; export next_version
     bash ${./create-release.sh}
   '';
 }
