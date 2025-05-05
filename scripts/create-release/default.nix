@@ -31,7 +31,7 @@ let
 in
 writeShellApplication {
   name = "create-release";
-  version = thisVer;
+  derivationArgs.version = thisVer;
 
   runtimeInputs = [
     bash
