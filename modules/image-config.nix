@@ -1,4 +1,5 @@
 {
+  inputs,
   config,
   fsType,
   lib,
@@ -8,10 +9,13 @@
   ...
 }:
 {
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+    inputs.nixos-apple-silicon.nixosModules.default
+  ];
 
   system.build."${fsType}Image" = import ../lib/make-disk-image.nix {
-    copyConfig = "${./flake}";
+    copyConfig = ./template;
     inherit
       config
       fsType
@@ -142,12 +146,15 @@
     memoryPercent = 100;
   };
 
-  nix.settings = {
-    warn-dirty = false;
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
+  nix = {
+    nixPath = [ "nixpkgs=flake:nixpkgs" ];
+    settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      warn-dirty = false;
+    };
   };
 
   networking = {
@@ -155,7 +162,9 @@
     networkmanager.wifi.backend = "iwd";
     wireless.iwd = {
       enable = true;
-      settings.General.EnableNetworkConfiguration = true;
+      settings = {
+        General.EnableNetworkConfiguration = true;
+      };
     };
   };
 
@@ -172,14 +181,7 @@
   };
 
   users.mutableUsers = true;
-
-  # users.users.nixos = {
-  #   isNormalUser = true;
-  #   initialHashedPassword = "";
-  #   extraGroups = [ "wheel" ];
-  # };
-
-  # security.sudo.wheelNeedsPassword = false;
+  users.users.root.initialHashedPassword = "nixos";
 
   system.stateVersion = "25.05";
 }

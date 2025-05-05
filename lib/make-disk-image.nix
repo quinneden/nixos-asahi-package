@@ -296,7 +296,7 @@ let
 
         # NOTE: systemd-boot-builder.py calls nix-env --list-generations which
         # clobbers $HOME/.nix-defexpr/channels/nixos. This would cause a folder
-        # /homeless-shelter to show up in the final image which  in turn breaks
+        # /homeless-shelter to show up in the final image which in turn breaks
         # nix builds in the target image if sandboxing is turned off (through
         # __noChroot for example).
         export HOME=$TMPDIR
