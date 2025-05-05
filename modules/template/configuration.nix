@@ -6,19 +6,12 @@
 {
   imports = [
     inputs.nixos-apple-silicon.nixosModules.default
-
     # Run `sudo nixos-generate-config --show-hardware-config | tee hardware-configuration.nix`
     # and uncomment this line.
     # ./hardware-configuration.nix
   ];
 
   boot = {
-    initrd.availableKernelModules = [
-      "xhci_pci"
-      "usb_storage"
-      "usbhid"
-    ];
-
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = false;
   };
@@ -35,15 +28,12 @@
     memoryPercent = 100;
   };
 
-  nix = {
-    settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
-    };
+  nix.settings = {
+    experimental-features = [
+      "flakes"
+      "nix-command"
+    ];
   };
-
   networking = {
     networkmanager.enable = true;
     networkmanager.wifi.backend = "iwd";

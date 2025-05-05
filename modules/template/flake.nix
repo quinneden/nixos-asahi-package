@@ -1,5 +1,5 @@
 {
-  description = "NixOS Apple Silicon";
+  description = "NixOS starter flake with Apple Silicon support";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
@@ -11,11 +11,17 @@
 
   outputs =
     { nixpkgs, ... }@inputs:
+    let
+      system = "aarch64-linux";
+      pkgs = import nixpkgs { inherit system; };
+    in
     {
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-        system = "aarch64-linux";
+        inherit system;
         specialArgs = { inherit inputs; };
         modules = [ ./configuration.nix ];
       };
+
+      formatter.${system} = pkgs.nixfmt-rfc-style;
     };
 }
