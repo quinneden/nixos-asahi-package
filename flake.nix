@@ -34,19 +34,15 @@
 
           imageConfig =
             fsType:
-            lib.nixosSystem rec {
+            lib.nixosSystem {
               system = "aarch64-linux";
-              pkgs = import nixpkgs { inherit system; };
 
               specialArgs = {
                 modulesPath = nixpkgs + "/nixos/modules";
-                inherit fsType version;
+                inherit fsType inputs version;
               };
 
-              modules = [
-                inputs.nixos-apple-silicon.nixosModules.default
-                ./modules/image-config.nix
-              ];
+              modules = [ ./modules/image-config.nix ];
             };
         in
         rec {
