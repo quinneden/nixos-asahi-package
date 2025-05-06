@@ -1,8 +1,4 @@
-{
-  inputs,
-  pkgs,
-  ...
-}:
+{ inputs, pkgs, ... }:
 {
   imports = [
     inputs.nixos-apple-silicon.nixosModules.default

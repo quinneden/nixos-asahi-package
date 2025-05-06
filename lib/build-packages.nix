@@ -21,21 +21,31 @@ let
   mkInstallerPkg = image: pkgs.callPackage ../package.nix { inherit image lib version; };
 in
 {
-  buildVariants =
+  mkPackageVariants =
     variants:
-    builtins.listToAttrs (
-      map (variant: {
-        name = variant;
-        value =
-          let
-            inherit (mkNixosConfig variant) config;
-          in
-          rec {
-            image = config.system.build.asahi-image // {
-              passthru = { inherit config; };
-            };
-            installerPackage = mkInstallerPkg image;
-          };
-      }) variants
-    );
+    let
+      # Create configurations for each variant
+      variantConfigs = builtins.listToAttrs (
+        map (variant: {
+          name = variant;
+          value = (mkNixosConfig variant).config;
+        }) variants
+      );
+
+      # Build the image for each variant
+      imageVariants = builtins.mapAttrs (
+        variant: config:
+        config.system.build.asahi-image
+        // {
+          passthru = { inherit config; };
+        }
+      ) variantConfigs;
+
+      # Build the installer package for each variant
+      installerPackagesVariants = builtins.mapAttrs (variant: image: mkInstallerPkg image) imageVariants;
+    in
+    {
+      image = imageVariants;
+      installerPackage = installerPackagesVariants;
+    };
 }

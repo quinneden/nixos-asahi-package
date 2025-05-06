@@ -8,16 +8,12 @@
 }:
 
 let
+  generateInstallerData = import ./lib/generate-installer-data.nix { inherit lib; };
   partInfo = import (image + "/partinfo.nix");
 
-  installerDataJSON = lib.utils.generateInstallerData {
+  installerData = generateInstallerData {
     baseUrl = "https://cdn.qeden.dev";
-    inherit version;
-    inherit (partInfo)
-      espSize
-      fsType
-      rootSize
-      ;
+    inherit partInfo version;
   };
 in
 
@@ -39,7 +35,7 @@ stdenv.mkDerivation (finalAttrs: {
     runHook preBuild
 
     diskImage="${image.name}.img"
-    pkgData="installer_data-${finalAttrs.version}.json"
+    installerData="installer_data-${finalAttrs.version}.json"
     pkgZip="${finalAttrs.pname}-${finalAttrs.version}.zip"
 
     eval "$(
@@ -61,14 +57,14 @@ stdenv.mkDerivation (finalAttrs: {
 
     popd > /dev/null
 
-    jq <<< ${lib.escapeShellArg installerDataJSON} > "$pkgData"
+    jq -r <<< ${lib.escapeShellArg installerData} > "$installerData"
 
     runHook postBuild
   '';
 
   installPhase = ''
     runHook preInstall
-    install -Dm644 -t $out $pkgZip $pkgData
+    install -Dm644 -t $out $pkgZip $installerData
     runHook postInstall
   '';
 })
