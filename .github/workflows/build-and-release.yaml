@@ -24,16 +24,18 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build metapackage
-        run: nix run "github:mic92/nix-fast-build" -- --eval-workers 24 --no-nom --skip-cached
+        run: nix-fast-build --eval-workers 24 --no-nom --skip-cached
 
       - name: Release
-        uses: softprops/action-gh-release@v2.2.1
+        uses: softprops/action-gh-release@v2.2.2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           draft: true
           files: |
-            result/nixos-asahi-*.zip
-            result/installer_data-*.json
+            result-aarch64-linux/nixos-asahi-*-btrfs.json
+            result-aarch64-linux/nixos-asahi-*-btrfs.zip
+            result-aarch64-linux/installer_data-*-ext4.json
+            result-aarch64-linux/nixos-asahi-*-ext4.zip
 
       - name: Upload to CDN
         if: startsWith(github.ref, 'refs/tags/')
@@ -42,7 +44,7 @@ jobs:
           cat > .env <<EOF
           export ACCESS_KEY_ID=${{ secrets.ACCESS_KEY_ID }}
           export BASE_URL="https://cdn.qeden.dev"
-          export BUCKET_NAME=${{ secrets.BUCKET_NAME }}
+          export BUCKET_NAME="nixos-asahi"
           export ENDPOINT_URL=${{ secrets.ENDPOINT_URL }}
           export SECRET_ACCESS_KEY=${{ secrets.SECRET_ACCESS_KEY }}
           EOF
