@@ -5,21 +5,25 @@
   writeShellApplication,
   ...
 }:
+let
+  pythonEnv = python3.withPackages (
+    ps: with ps; [
+      boto3
+      requests
+      tqdm
+    ]
+  );
+in
 writeShellApplication {
   name = "upload-to-r2";
 
   runtimeInputs = [
     curl
     jq
-    (python3.withPackages (
-      ps: with ps; [
-        boto3
-        requests
-        tqdm
-      ]
-    ))
+    pythonEnv
   ];
 
+  excludeShellChecks = [ "SC1090" ];
   text = ''
     while [[ $# -gt 0 ]]; do
       case "$1" in
@@ -28,30 +32,21 @@ writeShellApplication {
           shift 2
           ;;
         *)
-          src_dir=$(realpath "$1")
+          result_dir=$(realpath "$1")
           shift
           ;;
       esac
     done
 
     dotenv="''${dotenv:-./.env}"
-    src_dir="''${src_dir:-$(realpath ./result)}"
+    result_dir="''${result_dir:-$(realpath ./result)}"; export result_dir
 
-    if [[ ! -d $src_dir ]]; then
-      echo "error: source directory not specified or doesn't exist" >&2
+    if [[ ! -d "$result_dir" ]]; then
+      echo "Error: $result_dir is not a directory" >&2
       exit 1
-    else
-      PKG_DATA=$(find "$src_dir" -follow -name "installer_data-*.json"); export PKG_DATA
-      PKG_ZIP=$(find "$src_dir" -follow -name "nixos-asahi-*.zip"); export PKG_ZIP
     fi
 
-    if [[ ! -f $PKG_DATA || ! -f $PKG_ZIP ]]; then
-      echo "error: package and/or installer data not found in source directory" >&2
-      exit 1
-    else
-      # shellcheck disable=SC1090
-      source "$dotenv"
-      exec ${./upload-to-r2.py}
-    fi
+    source "$dotenv"
+    exec ${./upload.py}
   '';
 }
