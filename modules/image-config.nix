@@ -14,7 +14,7 @@
     inputs.nixos-apple-silicon.nixosModules.default
   ];
 
-  system.build."${fsType}Image" = import ../lib/make-disk-image.nix {
+  system.build.asahi-image = import ../lib/make-disk-image.nix {
     copyConfig = ./template;
     inherit
       config
