@@ -80,8 +80,8 @@
       checks.aarch64-linux = nixpkgs.legacyPackages.aarch64-linux.symlinkJoin {
         name = "nixos-asahi-metapackage";
         paths = with self.packages.aarch64-linux.installerPackage; [
-          ext4
           btrfs
+          ext4
         ];
       };
 
