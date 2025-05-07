@@ -4,7 +4,7 @@ let
 in
 {
   version = "${toString shortYear}.${toString month}.${toString day}";
-  released = false;
+  released = true;
 
   latestRelease = {
     commit = "b97da42f001d11db96e77201f9742a57f0ee6e6b";
