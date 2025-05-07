@@ -67,4 +67,10 @@ stdenv.mkDerivation (finalAttrs: {
     install -Dm644 -t $out $pkgZip $installerData
     runHook postInstall
   '';
+
+  meta = {
+    homepage = "https://nixos-asahi.qeden.dev";
+    platforms = [ "aarch64-linux" ];
+    licence = lib.licenses.mit;
+  };
 })
