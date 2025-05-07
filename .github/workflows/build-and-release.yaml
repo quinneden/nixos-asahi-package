@@ -32,10 +32,8 @@ jobs:
         with:
           draft: true
           files: |
-            result-aarch64-linux/nixos-asahi-*-btrfs.json
-            result-aarch64-linux/nixos-asahi-*-btrfs.zip
-            result-aarch64-linux/installer_data-*-ext4.json
-            result-aarch64-linux/nixos-asahi-*-ext4.zip
+            result-aarch64-linux/installer_data-*.json
+            result-aarch64-linux/nixos-asahi-*.zip
 
       - name: Upload to CDN
         if: startsWith(github.ref, 'refs/tags/')
