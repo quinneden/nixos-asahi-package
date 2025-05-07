@@ -3,6 +3,9 @@
 
 # shellcheck disable=SC2154
 
+commit_count=$(git rev-list --count --all)
+version="0.1.$commit_count"
+
 # Check if we're running from the root of the repository
 if [[ $(git rev-parse --show-toplevel) != "$PWD" ]]; then
   echo "This script must be run from the root of the repository" >&2
@@ -25,7 +28,7 @@ fi
 # Ensure there are no uncommitted or unpushed changes
 uncommited_changes=$(git diff --compact-summary)
 if [[ -n "$uncommited_changes" ]]; then
-  echo -e "There are uncommited changes, exiting:\n${uncommited_changes}" >&2
+  echo -e "There are uncommited changes, exiting:\n$uncommited_changes" >&2
   exit 1
 fi
 git pull "git@github.com:quinneden/nixos-asahi-package" main
@@ -36,7 +39,8 @@ if [[ "$unpushed_commits" != "" ]]; then
 fi
 
 # Update release.nix
-sed -i 's/released = false/released = true/' version.nix
+sed -i "s/commits = [0-9]\+;/commits = $commit_count;/g" version.nix
+sed -i "s/released = false/released = true/g" version.nix
 
 # Commit and tag the release
 git commit -am "release: v$version"
@@ -44,17 +48,10 @@ git tag -a "v$version" -m "release: v$version"
 git tag -d "latest" || true
 git tag -a "latest" -m "release: v$version"
 
-commit=$(git rev-parse HEAD)
-date=$(date +%Y-%m-%d)
-
-sed -i "s/$latestReleaseCommit/$commit/g" version.nix
-sed -i "s/$latestReleaseDate/$date/g" version.nix
-sed -i "s/$latestReleaseVersion/$version/g" version.nix
-sed -i "s/$latestReleaseTag/v$version/g" version.nix
-sed -i "s/released = true;/released = false;/g" version.nix
 
 # Reset release.nix
-git commit -am "chore: \`reset version.nix\`"
+sed -i "s/released = true;/released = false;/g" version.nix
+git commit -am "chore(version.nix): reset released flag"
 
 echo "Release was prepared successfully!"
 read -rn1 -p "Push to remote? (Y/n): " input

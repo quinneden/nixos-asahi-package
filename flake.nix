@@ -16,11 +16,7 @@
       inherit (nixpkgs) lib;
 
       versionInfo = import ./version.nix;
-      version =
-        if (versionInfo.released == true) then
-          versionInfo.version
-        else
-          (versionInfo.latestRelease.version + "-dirty");
+      version = versionInfo.version + (lib.optionalString (versionInfo.released != true) "-dirty");
 
       forEachSystem =
         f:
