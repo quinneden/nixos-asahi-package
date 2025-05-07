@@ -44,7 +44,7 @@
         {
           create-release = {
             type = "app";
-            program = lib.getExe (pkgs.callPackage ./scripts/create-release { inherit version; });
+            program = lib.getExe (pkgs.callPackage ./scripts/create-release { });
           };
 
           upload = {
