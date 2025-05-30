@@ -1,5 +1,5 @@
 rec {
-  commits = 282;
+  commits = 288;
   version = "0.1.${toString commits}";
-  released = false;
+  released = true;
 }
