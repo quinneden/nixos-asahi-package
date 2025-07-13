@@ -33,9 +33,7 @@ let
 
   blockSize = toString (4 * 1024); # ext4fs/btrfs block size (not block device sector size)
 
-  closureInfo = pkgs.closureInfo {
-    rootPaths = [ config.system.build.toplevel ];
-  };
+  closureInfo = pkgs.closureInfo { rootPaths = [ config.system.build.toplevel ]; };
 
   fileName = "${name}.img";
   label = "nixos";

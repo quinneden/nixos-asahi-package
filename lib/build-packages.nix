@@ -34,11 +34,7 @@ in
 
       # Build the image for each variant
       imageVariants = builtins.mapAttrs (
-        variant: config:
-        config.system.build.asahi-image
-        // {
-          passthru = { inherit config; };
-        }
+        variant: config: config.system.build.asahi-image // { passthru = { inherit config; }; }
       ) variantConfigs;
 
       # Build the installer package for each variant
