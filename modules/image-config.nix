@@ -16,6 +16,7 @@
 
   system.build.asahi-image = import ../lib/make-disk-image.nix {
     copyConfig = ./template;
+    memSize = 8192;
     inherit
       config
       fsType
