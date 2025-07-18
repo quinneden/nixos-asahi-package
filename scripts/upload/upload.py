@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
+#! /usr/bin/env python3
 # -*- coding: ASCII -*-
+
 import json
 import os
 import requests
@@ -13,9 +14,7 @@ from tqdm import tqdm
 
 def append_installer_data(file_paths: list, url=None):
     response = requests.get(url)
-    os_list = (
-        response.json() if response.status_code == 200 else {"os_list": []}
-    )
+    os_list = response.json() if response.status_code == 200 else {"os_list": []}
 
     for file_path in file_paths:
         with open(file_path, "r") as data:
@@ -43,9 +42,7 @@ def upload_to_r2(file: str, content_type: str):
     object_prefix = "data" if file_name.endswith(".json") else "os"
     object_key = f"{object_prefix}/{file_name}"
 
-    with tqdm(
-        total=file_size, desc=file_name, unit="B", unit_scale=True
-    ) as progress:
+    with tqdm(total=file_size, desc=file_name, unit="B", unit_scale=True) as progress:
         with open(file, "rb") as file_bytes:
             s3_client.upload_fileobj(
                 file_bytes,
@@ -70,9 +67,7 @@ if __name__ == "__main__":
     ]
 
     base_url = os.getenv("BASE_URL")
-    merged_data = append_installer_data(
-        data_filepaths, url=f"{base_url}/data/installer_data.json"
-    )
+    merged_data = append_installer_data(data_filepaths, url=f"{base_url}/data/installer_data.json")
 
     with tempfile.TemporaryDirectory() as temp_dir:
         os.chdir(temp_dir)

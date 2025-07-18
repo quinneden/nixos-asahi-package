@@ -1,9 +1,10 @@
-__pycache__
-.DS_Store
-.direnv
-.env
-.env.*
-result*
+*.bck
 *.img
 *.zip
+.direnv/
+.DS_Store
+.env
+.env.*
+__pycache__/
 installer_data*.json
+result*/
