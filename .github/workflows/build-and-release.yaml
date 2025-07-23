@@ -24,7 +24,12 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build metapackage
-        run: nix-fast-build --eval-workers 24 --max-memory 8192 --no-nom
+        run: |
+          nix-fast-build \
+            --eval-workers 24 \
+            --eval-max-memory-size 8192 \
+            --skip-cached \
+            --no-nom
 
       - name: Release
         uses: softprops/action-gh-release@v2.2.2
