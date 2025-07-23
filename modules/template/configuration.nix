@@ -16,7 +16,6 @@
     peripheralFirmwareDirectory = /boot/asahi;
     setupAsahiSound = true;
     useExperimentalGPUDriver = true;
-    withRust = true;
   };
 
   zramSwap = {
