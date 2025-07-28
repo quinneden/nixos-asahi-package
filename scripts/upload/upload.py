@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-# -*- coding: ASCII -*-
 
 import json
 import os

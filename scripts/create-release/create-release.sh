@@ -38,7 +38,7 @@ if [[ "$unpushed_commits" != "" ]]; then
   exit 1
 fi
 
-# Update release.nix
+# Update version.nix
 sed -i "s/commits = [0-9]\+;/commits = $commit_count;/g" version.nix
 sed -i "s/released = false/released = true/g" version.nix
 
