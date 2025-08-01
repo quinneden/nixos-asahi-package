@@ -26,8 +26,7 @@ jobs:
       - name: Build metapackage
         run: |
           nix-fast-build \
-            --eval-workers 24 \
-            --eval-max-memory-size 8192 \
+            --eval-max-memory-size 4096 \
             --skip-cached \
             --no-nom
 
