@@ -53,7 +53,7 @@ sed -i "s/released = true;/released = false;/g" version.nix
 git commit -am "chore(version.nix): reset released flag"
 
 echo "Release was prepared successfully!"
-read -rn1 -p "Push to remote? (Y/n): " input
+read -rn1 -p "Push to remote? (y/N): " input
 if [[ $input != 'y' ]]; then
   echo "To push the release, run the following command:"
   echo
