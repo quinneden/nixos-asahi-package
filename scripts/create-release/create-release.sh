@@ -45,8 +45,7 @@ sed -i "s/released = false/released = true/g" version.nix
 # Commit and tag the release
 git commit -am "release: v$version"
 git tag -a "v$version" -m "release: v$version"
-git tag -d "latest" || true
-git tag -a "latest" -m "release: v$version"
+git tag -fa "latest" -m "release: v$version"
 
 
 # Reset release.nix
